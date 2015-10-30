@@ -76,9 +76,9 @@ namespace SKBKontur.Catalogue.Objects
         {
             result = null;
             Guid guid;
-            if (!Guid.TryParse(input, out guid))
+            if(!Guid.TryParse(input, out guid))
                 return false;
-            if (TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
                 return false;
 
             result = new TimeGuid(guid);
