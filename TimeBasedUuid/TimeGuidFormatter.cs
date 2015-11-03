@@ -2,6 +2,8 @@
 
 using JetBrains.Annotations;
 
+using SKBKontur.Catalogue.Objects.BitConversion;
+
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
     /// <summary>
@@ -11,24 +13,15 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     {
         private const int nodeSize = 6;
         private const int nodeOffset = 10;
-
         private const int clockSequenceOffset = 9;
-
         // multiplex variant info
         private const int variantOffset = 8;
         private const int variantByteMask = 0x3f;
         private const int variantByteShift = 0x80;
-
         // multiplex version info
         private const int versionOffset = 7;
         private const int versionByteMask = 0x0f;
         private const int versionByteShift = 4;
-
-        // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
-        public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);
-
-        // max timestamp representable by time-based UUID (~5236-03-31 21:21:00Z)
-        public static readonly Timestamp GregorianCalendarEnd = new Timestamp(new DateTime(1652084544606846975L, DateTimeKind.Utc).Ticks);
 
         public static GuidVersion GetVersion(Guid guid)
         {
@@ -58,30 +51,28 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] GetNode(Guid guid)
         {
-            var result = new byte[nodeSize];
-            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, nodeSize);
-            return result;
+            return new ByteRange(guid.ToByteArray(), nodeOffset, nodeSize).ToByteArray();
         }
 
         public static Guid Format([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
         {
-            if (node.Length != nodeSize)
+            if(node.Length != nodeSize)
                 throw new InvalidOperationException("node must be 6 bytes long");
-            if (timestamp < GregorianCalendarStart)
+            if(timestamp < GregorianCalendarStart)
                 throw new InvalidOperationException(string.Format("timestamp must not be less than {0}", GregorianCalendarStart));
-            if (timestamp > GregorianCalendarEnd)
+            if(timestamp > GregorianCalendarEnd)
                 throw new InvalidOperationException(string.Format("timestamp must not be greater than {0}", GregorianCalendarEnd));
 
             var ticks = (timestamp - GregorianCalendarStart).Ticks;
             var ticksBytes = BitConverter.GetBytes(ticks);
-            if (ticksBytes.Length != 8)
+            if(ticksBytes.Length != 8)
                 throw new InvalidOperationException("ticks must be 8 bytes long");
 
             var offset = 0;
-            var guid = new byte[16];
-            BytesToBytes(ticksBytes, guid, ref offset);
-            UshortToBytes(clockSequence, guid, ref offset);
-            BytesToBytes(node, guid, ref offset);
+            var guid = new byte[BitHelper.GuidSize];
+            BitHelper.BytesToBytes(ticksBytes, guid, ref offset);
+            BitHelper.UshortToBytes(clockSequence, guid, ref offset);
+            BitHelper.BytesToBytes(node, guid, ref offset);
 
             guid[variantOffset] &= variantByteMask;
             guid[variantOffset] |= variantByteShift;
@@ -92,21 +83,9 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return new Guid(guid);
         }
 
-        public static void BytesToBytes([NotNull] byte[] field, [NotNull] byte[] targetBuffer, ref int targetBufferOffset)
-        {
-            Array.Copy(field, 0, targetBuffer, targetBufferOffset, field.Length);
-            targetBufferOffset += field.Length;
-        }
-
-        public static void UshortToBytes(ushort field, [NotNull] byte[] targetBuffer, ref int targetBufferOffset)
-        {
-            var endOffset = targetBufferOffset + 1;
-            for (var i = 0; i < 2; i++)
-            {
-                targetBuffer[endOffset - i] = unchecked((byte)(field & 0xff));
-                field = (ushort)(field >> 8);
-            }
-            targetBufferOffset += sizeof(ushort);
-        }
+        // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
+        public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);
+        // max timestamp representable by time-based UUID (~5236-03-31 21:21:00Z)
+        public static readonly Timestamp GregorianCalendarEnd = new Timestamp(new DateTime(1652084544606846975L, DateTimeKind.Utc).Ticks);
     }
 }
