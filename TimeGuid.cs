@@ -8,13 +8,17 @@ namespace SKBKontur.Catalogue.Objects
 {
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
-        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
+        public TimeGuid([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
+            : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
+        {
+        }
 
-        [NotNull]
-        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidGenerator.MinGuid);
-
-        [NotNull]
-        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidGenerator.MaxGuid);
+        public TimeGuid(Guid guid)
+        {
+            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+                throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
+            this.guid = guid;
+        }
 
         [NotNull]
         public static TimeGuid MinForTimestamp([NotNull] Timestamp timestamp)
@@ -46,25 +50,6 @@ namespace SKBKontur.Catalogue.Objects
             return new TimeGuid(guidGen.NewGuid(timestamp, clockSequence));
         }
 
-        private readonly Guid guid;
-
-        [UsedImplicitly]
-        private TimeGuid()
-        {
-        }
-
-        public TimeGuid([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
-            : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
-        {
-        }
-
-        public TimeGuid(Guid guid)
-        {
-            if (TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
-                throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
-            this.guid = guid;
-        }
-
         public Guid ToGuid()
         {
             return guid;
@@ -94,20 +79,20 @@ namespace SKBKontur.Catalogue.Objects
 
         public bool Equals([CanBeNull] TimeGuid other)
         {
-            if (ReferenceEquals(null, other))
+            if(ReferenceEquals(null, other))
                 return false;
-            if (ReferenceEquals(this, other))
+            if(ReferenceEquals(this, other))
                 return true;
             return guid == other.guid;
         }
 
         public override bool Equals([CanBeNull] object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if(ReferenceEquals(null, obj))
                 return false;
-            if (ReferenceEquals(this, obj))
+            if(ReferenceEquals(this, obj))
                 return true;
-            if (obj.GetType() != GetType())
+            if(obj.GetType() != GetType())
                 return false;
             return Equals((TimeGuid)obj);
         }
@@ -129,10 +114,10 @@ namespace SKBKontur.Catalogue.Objects
 
         public int CompareTo(TimeGuid other)
         {
-            if (other == null)
+            if(other == null)
                 return 1;
             var result = GetTimestamp().CompareTo(other.GetTimestamp());
-            if (result == 0)
+            if(result == 0)
                 return ToGuid().CompareTo(other.ToGuid());
             return result;
         }
@@ -141,5 +126,14 @@ namespace SKBKontur.Catalogue.Objects
         {
             return CompareTo(obj as TimeGuid);
         }
+
+        [NotNull]
+        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidGenerator.MinGuid);
+
+        [NotNull]
+        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidGenerator.MaxGuid);
+
+        private readonly Guid guid;
+        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }
 }

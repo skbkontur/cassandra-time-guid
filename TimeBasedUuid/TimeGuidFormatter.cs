@@ -11,18 +11,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     /// </summary>
     public static class TimeGuidFormatter
     {
-        private const int nodeSize = 6;
-        private const int nodeOffset = 10;
-        private const int clockSequenceOffset = 9;
-        // multiplex variant info
-        private const int variantOffset = 8;
-        private const int variantByteMask = 0x3f;
-        private const int variantByteShift = 0x80;
-        // multiplex version info
-        private const int versionOffset = 7;
-        private const int versionByteMask = 0x0f;
-        private const int versionByteShift = 4;
-
         public static GuidVersion GetVersion(Guid guid)
         {
             var bytes = guid.ToByteArray();
@@ -51,7 +39,9 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] GetNode(Guid guid)
         {
-            return new ByteRange(guid.ToByteArray(), nodeOffset, nodeSize).ToByteArray();
+            var result = new byte[nodeSize];
+            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, nodeSize);
+            return result;
         }
 
         public static Guid Format([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
@@ -82,6 +72,18 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
             return new Guid(guid);
         }
+
+        private const int nodeSize = 6;
+        private const int nodeOffset = 10;
+        private const int clockSequenceOffset = 9;
+        // multiplex variant info
+        private const int variantOffset = 8;
+        private const int variantByteMask = 0x3f;
+        private const int variantByteShift = 0x80;
+        // multiplex version info
+        private const int versionOffset = 7;
+        private const int versionByteMask = 0x0f;
+        private const int versionByteShift = 4;
 
         // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
         public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);

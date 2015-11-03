@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 using JetBrains.Annotations;
 
@@ -15,12 +14,6 @@ namespace SKBKontur.Catalogue.Objects.BitConversion
         public const int DateTimeSize = LongSize;
         public const int TimestampSize = LongSize;
         public const int GuidSize = 16;
-
-        public static void MemSet(byte value, int count, [NotNull] byte[] targetBuffer, ref int targetBufferOffset)
-        {
-            memset(ref targetBuffer[targetBufferOffset], value, count);
-            targetBufferOffset += count;
-        }
 
         public static void ByteToBytes(byte field, [NotNull] byte[] targetBuffer, ref int targetBufferOffset)
         {
@@ -258,8 +251,5 @@ namespace SKBKontur.Catalogue.Objects.BitConversion
             offset += GuidSize;
             return new Guid(a, b, c, d, e, f, g, h, i, j, k);
         }
-
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void memset(ref byte x, int value, long count);
     }
 }

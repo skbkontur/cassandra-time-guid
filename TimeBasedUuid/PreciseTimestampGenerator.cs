@@ -7,14 +7,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
     public class PreciseTimestampGenerator
     {
-        [NotNull]
-        public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
-
-        private readonly TimeSpan syncPeriod;
-        private readonly long maxAllowedDivergenceTicks;
-        private readonly Stopwatch stopwatch;
-        private long baseTimestampTicks, lastTimestampTicks;
-
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
         {
             this.syncPeriod = syncPeriod;
@@ -27,7 +19,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public Timestamp Now()
         {
-            lock (stopwatch)
+            lock(stopwatch)
                 return DoGetNow();
         }
 
@@ -43,7 +35,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private long GetNowTicks()
         {
             var nowTicks = DateTime.UtcNow.Ticks;
-            if (stopwatch.Elapsed > syncPeriod)
+            if(stopwatch.Elapsed > syncPeriod)
             {
                 baseTimestampTicks = nowTicks;
                 stopwatch.Restart();
@@ -57,7 +49,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             var resultTicks = Math.Max(baseTimestampTicks + elapsedTicks, lastTimestampTicks + 1);
 
             // see http://stackoverflow.com/questions/1008345
-            if (elapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
+            if(elapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
                 return GetSafeResultTicks(nowTicks);
 
             return resultTicks;
@@ -67,5 +59,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
             return Math.Max(nowTicks, lastTimestampTicks + 1);
         }
+
+        [NotNull]
+        public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+
+        private readonly TimeSpan syncPeriod;
+        private readonly long maxAllowedDivergenceTicks;
+        private readonly Stopwatch stopwatch;
+        private long baseTimestampTicks, lastTimestampTicks;
     }
 }
