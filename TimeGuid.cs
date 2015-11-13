@@ -72,6 +72,19 @@ namespace SKBKontur.Catalogue.Objects
             return TimeGuidFormatter.GetNode(guid);
         }
 
+        public static bool TryParse(string input, out TimeGuid result)
+        {
+            result = null;
+            Guid guid;
+            if (!Guid.TryParse(input, out guid))
+                return false;
+            if (TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+                return false;
+
+            result = new TimeGuid(guid);
+            return true;
+        }
+
         public override string ToString()
         {
             return string.Format("Guid: {0}, Timestamp: {1}", guid, GetTimestamp());
