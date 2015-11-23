@@ -30,10 +30,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return new Timestamp(ticks + GregorianCalendarStart.Ticks);
         }
 
-        public static byte GetClockSequence(Guid guid)
+        public static ClockSequence GetClockSequence(Guid guid)
         {
             var bytes = guid.ToByteArray();
-            return bytes[clockSequenceOffset];
+            return new ClockSequence(new[] {bytes[clockSequenceHighByteOffset], bytes[clockSequenceLowByteOffset]});
         }
 
         [NotNull]
@@ -44,7 +44,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return result;
         }
 
-        public static Guid Format([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
+        public static Guid Format([NotNull] Timestamp timestamp, ClockSequence clockSequence, [NotNull] byte[] node)
         {
             if(node.Length != nodeSize)
                 throw new InvalidOperationException("node must be 6 bytes long");
@@ -54,17 +54,16 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 throw new InvalidOperationException(string.Format("timestamp must not be greater than {0}", GregorianCalendarEnd));
 
             var ticks = (timestamp - GregorianCalendarStart).Ticks;
-            var ticksBytes = BitConverter.GetBytes(ticks);
+            var ticksBytes = EndianBitConverter.Little.GetBytes(ticks);
             if(ticksBytes.Length != 8)
                 throw new InvalidOperationException("ticks must be 8 bytes long");
 
             var offset = 0;
             var guid = new byte[BitHelper.GuidSize];
             BitHelper.BytesToBytes(ticksBytes, guid, ref offset);
-            BitHelper.UshortToBytes(clockSequence, guid, ref offset);
+            BitHelper.BytesToBytes(clockSequence.GetBytes(), guid, ref offset);
             BitHelper.BytesToBytes(node, guid, ref offset);
 
-            guid[variantOffset] &= variantByteMask;
             guid[variantOffset] |= variantByteShift;
 
             guid[versionOffset] &= versionByteMask;
@@ -73,18 +72,17 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return new Guid(guid);
         }
 
+        private const int clockSequenceHighByteOffset = 8;
+        private const int clockSequenceLowByteOffset = 9;
         private const int nodeSize = 6;
         private const int nodeOffset = 10;
-        private const int clockSequenceOffset = 9;
         // multiplex variant info
         private const int variantOffset = 8;
-        private const int variantByteMask = 0x3f;
         private const int variantByteShift = 0x80;
         // multiplex version info
         private const int versionOffset = 7;
         private const int versionByteMask = 0x0f;
         private const int versionByteShift = 4;
-
         // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
         public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);
         // max timestamp representable by time-based UUID (~5236-03-31 21:21:00Z)

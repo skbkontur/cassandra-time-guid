@@ -8,7 +8,7 @@ namespace SKBKontur.Catalogue.Objects
 {
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
-        public TimeGuid([NotNull] Timestamp timestamp, byte clockSequence, [NotNull] byte[] node)
+        public TimeGuid([NotNull] Timestamp timestamp, ClockSequence clockSequence, [NotNull] byte[] node)
             : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
         {
         }
@@ -45,7 +45,7 @@ namespace SKBKontur.Catalogue.Objects
         }
 
         [NotNull]
-        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, byte clockSequence)
+        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, ClockSequence clockSequence)
         {
             return new TimeGuid(guidGen.NewGuid(timestamp, clockSequence));
         }
@@ -61,7 +61,7 @@ namespace SKBKontur.Catalogue.Objects
             return TimeGuidFormatter.GetTimestamp(guid);
         }
 
-        public byte GetClockSequence()
+        public ClockSequence GetClockSequence()
         {
             return TimeGuidFormatter.GetClockSequence(guid);
         }
