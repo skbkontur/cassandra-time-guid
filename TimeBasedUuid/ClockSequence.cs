@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using SKBKontur.Catalogue.Objects.BitConversion;
 
@@ -15,7 +14,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             this.index = index;
             var bytes = EndianBitConverter.Big.GetBytes(index);
             hByte = bytes[0];
-            lByte = ToSByte(bytes[1]);
+            lByte = (byte)(bytes[1] ^ clockSequenceLowByteMask);
         }
 
         public ClockSequence(byte[] bytes)
@@ -26,7 +25,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             hByte = (byte)(bytes[0] & clockSequenceHighByteMask);
             lByte = bytes[1];
 
-            index = EndianBitConverter.Big.ToUInt16(new[] {hByte, FromSByte(lByte)}, 0);
+            index = EndianBitConverter.Big.ToUInt16(new[] {hByte, (byte)(lByte ^ clockSequenceLowByteMask)}, 0);
         }
 
         public ClockSequence Next()
@@ -79,30 +78,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return index.ToString("D5");
         }
 
-        private static byte FromSByte(byte @byte)
-        {
-            var signBit = @byte & clockSequenceLowNegativeMask;
-            var sign = 1;
-            if(signBit == clockSequenceLowNegativeMask)
-                sign = -1;
-
-            var unsignedByte = @byte & clockSequenceLowUnsignedValueMask;
-            if(@byte == 0x80)
-                unsignedByte = @byte;
-
-            return EndianBitConverter.Little.GetBytes(128 + unsignedByte * sign).First();
-        }
-
-        private static byte ToSByte(byte @byte)
-        {
-            var result = EndianBitConverter.Little.GetBytes(Math.Abs(@byte - 128)).First();
-            if(@byte < 128)
-                result |= clockSequenceLowNegativeMask;
-            return result;
-        }
-
-        private const int clockSequenceLowNegativeMask = 0x80;
-        private const int clockSequenceLowUnsignedValueMask = 0x7f;
+        private const int clockSequenceLowByteMask = 0x80;
         private const byte clockSequenceHighByteMask = 0x3f;
         private const ushort maxIndex = 16383;
         public static readonly ClockSequence MinValue = new ClockSequence(new byte[] {0x00, 0x80});
