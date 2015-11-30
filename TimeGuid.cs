@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -8,7 +9,7 @@ namespace SKBKontur.Catalogue.Objects
 {
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
-        public TimeGuid([NotNull] Timestamp timestamp, ClockSequence clockSequence, [NotNull] byte[] node)
+        public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
             : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
         {
         }
@@ -45,7 +46,7 @@ namespace SKBKontur.Catalogue.Objects
         }
 
         [NotNull]
-        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, ClockSequence clockSequence)
+        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
         {
             return new TimeGuid(guidGen.NewGuid(timestamp, clockSequence));
         }
@@ -61,7 +62,7 @@ namespace SKBKontur.Catalogue.Objects
             return TimeGuidFormatter.GetTimestamp(guid);
         }
 
-        public ClockSequence GetClockSequence()
+        public ushort GetClockSequence()
         {
             return TimeGuidFormatter.GetClockSequence(guid);
         }
@@ -125,13 +126,45 @@ namespace SKBKontur.Catalogue.Objects
             return !Equals(left, right);
         }
 
+        public static bool operator >([CanBeNull] TimeGuid left, [CanBeNull] TimeGuid right)
+        {
+            return Comparer<TimeGuid>.Default.Compare(left, right) > 0;
+        }
+
+        public static bool operator <(TimeGuid left, TimeGuid right)
+        {
+            return Comparer<TimeGuid>.Default.Compare(left, right) < 0;
+        }
+
+        public static bool operator >=([CanBeNull] TimeGuid left, [CanBeNull] TimeGuid right)
+        {
+            return Comparer<TimeGuid>.Default.Compare(left, right) >= 0;
+        }
+
+        public static bool operator <=(TimeGuid left, TimeGuid right)
+        {
+            return Comparer<TimeGuid>.Default.Compare(left, right) <= 0;
+        }
+
         public int CompareTo(TimeGuid other)
         {
             if(other == null)
                 return 1;
             var result = GetTimestamp().CompareTo(other.GetTimestamp());
             if(result == 0)
-                return ToGuid().CompareTo(other.ToGuid());
+            {
+                var bytes = ToGuid().ToByteArray();
+                var otherBytes = other.ToGuid().ToByteArray();
+                for(var i = 8; i < bytes.Length; i++)
+                {
+                    if(bytes[i] == otherBytes[i])
+                        continue;
+
+                    if((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80))
+                        return 1;
+                    return -1;
+                }
+            }
             return result;
         }
 

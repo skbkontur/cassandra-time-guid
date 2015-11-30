@@ -16,12 +16,12 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public static Guid MinGuidForTimestamp([NotNull] Timestamp timestamp)
         {
-            return TimeGuidFormatter.Format(timestamp, ClockSequence.MinValue, minNode);
+            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.ClockSequenceMinValue, minNode);
         }
 
         public static Guid MaxGuidForTimestamp([NotNull] Timestamp timestamp)
         {
-            return TimeGuidFormatter.Format(timestamp, ClockSequence.MaxValue, maxNode);
+            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.ClockSequenceMaxValue, maxNode);
         }
 
         public Guid NewGuid()
@@ -34,7 +34,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return TimeGuidFormatter.Format(timestamp, GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
-        public Guid NewGuid([NotNull] Timestamp timestamp, ClockSequence clockSequence)
+        public Guid NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
         {
             return TimeGuidFormatter.Format(timestamp, clockSequence, GenerateRandomNode());
         }
@@ -46,25 +46,26 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 return rng.NextBytes(6);
         }
 
-        private ClockSequence GenerateRandomClockSequence()
+        private ushort GenerateRandomClockSequence()
         {
             lock(rng)
-                return new ClockSequence(rng.NextBytes(2));
+                return rng.NextUshort(TimeGuidFormatter.ClockSequenceMinValue, TimeGuidFormatter.ClockSequenceMaxValue);
         }
 
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
         private readonly Random rng;
         private readonly byte[] defaultNode;
-        private readonly ClockSequence defaultClockSequence;
+        private readonly ushort defaultClockSequence;
         /*
          * Cassandra TimeUUIDType compares the msb parts as timestamps and the lsb parts as a signed byte array comparison.
          * The min and max possible lsb for a UUID, respectively:
          * 0x8080808080808080L and 0xbf7f7f7f7f7f7f7fL in rfc4122 
          * 0x8080808080808080L and 0xbf7f7f7f7f7f7f7fL in Cassandra (Cassandra ignores the variant field)
          */
+
         private static readonly byte[] minNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80,};
         private static readonly byte[] maxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,};
-        public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, ClockSequence.MinValue, minNode);
-        public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, ClockSequence.MaxValue, maxNode);
+        public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, TimeGuidFormatter.ClockSequenceMinValue, minNode);
+        public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, TimeGuidFormatter.ClockSequenceMaxValue, maxNode);
     }
 }

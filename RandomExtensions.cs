@@ -26,7 +26,12 @@ namespace SKBKontur.Catalogue.Objects
 
         public static ushort NextUshort([NotNull] this Random random)
         {
-            return (ushort)random.Next(ushort.MinValue, ushort.MaxValue);
+            return random.NextUshort(ushort.MinValue, ushort.MaxValue);
+        }
+
+        public static ushort NextUshort([NotNull] this Random random, ushort minValue, ushort maxValue)
+        {
+            return (ushort)random.Next(minValue, maxValue);
         }
 
         public static long NextLong([NotNull] this Random random)
