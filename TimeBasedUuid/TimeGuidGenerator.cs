@@ -9,7 +9,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public TimeGuidGenerator([NotNull] PreciseTimestampGenerator preciseTimestampGenerator)
         {
             this.preciseTimestampGenerator = preciseTimestampGenerator;
-            rng = new Random();
+            rng = new Random(Guid.NewGuid().GetHashCode());
             defaultNode = GenerateRandomNode();
             defaultClockSequence = GenerateRandomClockSequence();
         }
