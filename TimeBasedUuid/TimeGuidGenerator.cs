@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Security.Cryptography;
+using System.Threading;
 
 using JetBrains.Annotations;
 
@@ -10,8 +12,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
             this.preciseTimestampGenerator = preciseTimestampGenerator;
             rng = new Random(Guid.NewGuid().GetHashCode());
+            rngCryptoService = new RNGCryptoServiceProvider();
             defaultNode = GenerateRandomNode();
             defaultClockSequence = GenerateRandomClockSequence();
+            countValuesWithOneNode = 0;
         }
 
         public static Guid MinGuidForTimestamp([NotNull] Timestamp timestamp)
@@ -26,6 +30,17 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public Guid NewGuid()
         {
+            if(Interlocked.Increment(ref countValuesWithOneNode) > maxCountValuesWithOneNode)
+            {
+                lock(lockObject)
+                {
+                    if(Interlocked.Increment(ref countValuesWithOneNode) > maxCountValuesWithOneNode)
+                    {
+                        Interlocked.Exchange(ref defaultNode, GenerateRandomNode());
+                        Interlocked.Exchange(ref countValuesWithOneNode, 1);
+                    }
+                }
+            }
             return TimeGuidFormatter.Format(preciseTimestampGenerator.Now(), defaultClockSequence, defaultNode);
         }
 
@@ -42,8 +57,12 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         private byte[] GenerateRandomNode()
         {
-            lock(rng)
-                return rng.NextBytes(6);
+            lock(rngCryptoService)
+            {
+                var bytes = new byte[6];
+                rngCryptoService.GetBytes(bytes);
+                return bytes;
+            }
         }
 
         private ushort GenerateRandomClockSequence()
@@ -52,10 +71,14 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 return rng.NextUshort(TimeGuidFormatter.ClockSequenceMinValue, TimeGuidFormatter.ClockSequenceMaxValue);
         }
 
+        private const int maxCountValuesWithOneNode = 1000;
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
         private readonly Random rng;
-        private readonly byte[] defaultNode;
+        private byte[] defaultNode;
         private readonly ushort defaultClockSequence;
+        private readonly RNGCryptoServiceProvider rngCryptoService;
+        private int countValuesWithOneNode;
+        private readonly object lockObject = new object();
         /*
          * Cassandra TimeUUIDType compares the msb parts as timestamps and the lsb parts as a signed byte array comparison.
          * The min and max possible lsb for a UUID, respectively:
@@ -63,8 +86,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
          * 0x8080808080808080L and 0xbf7f7f7f7f7f7f7fL in Cassandra (Cassandra ignores the variant field)
          */
 
-        private static readonly byte[] minNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80,};
-        private static readonly byte[] maxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,};
+        private static readonly byte[] minNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
+        private static readonly byte[] maxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
         public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, TimeGuidFormatter.ClockSequenceMinValue, minNode);
         public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, TimeGuidFormatter.ClockSequenceMaxValue, maxNode);
     }
