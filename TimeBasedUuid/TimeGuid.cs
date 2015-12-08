@@ -81,6 +81,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return guid.GetHashCode();
         }
 
+        /// <remarks>
+        /// Cassandra TimeUUIDType first compares the first 0-7 octets as timestamps (time_hi, then time_mid, then time_low)
+        /// and then if timestamps are equal compares the last 8-15 octets as signed byte arrays lexicographically
+        /// </remarks>
         public int CompareTo([CanBeNull] TimeGuid other)
         {
             if(other == null)
@@ -152,13 +156,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static TimeGuid MinForTimestamp([NotNull] Timestamp timestamp)
         {
-            return new TimeGuid(TimeGuidGenerator.MinGuidForTimestamp(timestamp));
+            return new TimeGuid(TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MinNode));
         }
 
         [NotNull]
         public static TimeGuid MaxForTimestamp([NotNull] Timestamp timestamp)
         {
-            return new TimeGuid(TimeGuidGenerator.MaxGuidForTimestamp(timestamp));
+            return new TimeGuid(TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MaxClockSequence, TimeGuidFormatter.MaxNode));
         }
 
         // ReSharper disable once InconsistentNaming
@@ -166,10 +170,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private Guid guid { get; set; }
 
         [NotNull]
-        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidGenerator.MinGuid);
+        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidFormatter.MinGuid);
 
         [NotNull]
-        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidGenerator.MaxGuid);
+        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidFormatter.MaxGuid);
 
         private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }

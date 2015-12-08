@@ -18,16 +18,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             countValuesWithOneNode = 0;
         }
 
-        public static Guid MinGuidForTimestamp([NotNull] Timestamp timestamp)
-        {
-            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MinClockSequence, minNode);
-        }
-
-        public static Guid MaxGuidForTimestamp([NotNull] Timestamp timestamp)
-        {
-            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MaxClockSequence, maxNode);
-        }
-
         public Guid NewGuid()
         {
             if(Interlocked.Increment(ref countValuesWithOneNode) > maxCountValuesWithOneNode)
@@ -79,16 +69,5 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private readonly RNGCryptoServiceProvider rngCryptoService;
         private int countValuesWithOneNode;
         private readonly object lockObject = new object();
-        /*
-         * Cassandra TimeUUIDType compares the msb parts as timestamps and the lsb parts as a signed byte array comparison.
-         * The min and max possible lsb for a UUID, respectively:
-         * 0x8080808080808080L and 0xbf7f7f7f7f7f7f7fL in rfc4122 
-         * 0x8080808080808080L and 0xbf7f7f7f7f7f7f7fL in Cassandra (Cassandra ignores the variant field)
-         */
-
-        private static readonly byte[] minNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
-        private static readonly byte[] maxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
-        public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, TimeGuidFormatter.MinClockSequence, minNode);
-        public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, TimeGuidFormatter.MaxClockSequence, maxNode);
     }
 }
