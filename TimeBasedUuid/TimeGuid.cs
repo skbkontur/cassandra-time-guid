@@ -81,7 +81,25 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return guid.GetHashCode();
         }
 
-        
+        public int CompareTo([CanBeNull] TimeGuid other)
+        {
+            if(other == null)
+                return 1;
+            var result = GetTimestamp().CompareTo(other.GetTimestamp());
+            if(result != 0)
+                return result;
+            var bytes = guid.ToByteArray();
+            var otherBytes = other.guid.ToByteArray();
+            for(var i = 8; i < bytes.Length; i++)
+            {
+                if(bytes[i] == otherBytes[i])
+                    continue;
+                if((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80)) // todo (timeguid): refactor and move closer to byte formatting
+                    return 1;
+                return -1;
+            }
+            return 0;
+        }
 
         public static bool operator ==(TimeGuid left, TimeGuid right)
         {
@@ -111,26 +129,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static bool operator <=(TimeGuid left, TimeGuid right)
         {
             return Comparer<TimeGuid>.Default.Compare(left, right) <= 0;
-        }
-
-        public int CompareTo([CanBeNull] TimeGuid other)
-        {
-            if (other == null)
-                return 1;
-            var result = GetTimestamp().CompareTo(other.GetTimestamp());
-            if (result != 0)
-                return result;
-            var bytes = guid.ToByteArray();
-            var otherBytes = other.guid.ToByteArray();
-            for (var i = 8; i < bytes.Length; i++)
-            {
-                if (bytes[i] == otherBytes[i])
-                    continue;
-                if ((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80)) // todo (timeguid): refactor and move closer to byte formatting
-                    return 1;
-                return -1;
-            }
-            return 0;
         }
 
         [NotNull]

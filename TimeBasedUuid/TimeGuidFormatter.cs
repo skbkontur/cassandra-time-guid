@@ -37,39 +37,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     // Implementation is based on https://github.com/fluentcassandra/fluentcassandra/blob/master/src/GuidGenerator.cs
     public static class TimeGuidFormatter
     {
-        public static GuidVersion GetVersion(Guid guid)
-        {
-            var bytes = guid.ToByteArray();
-            return (GuidVersion)((bytes[versionOffset] & 0xff) >> versionByteShift); // todo (timeguid): & 0xff - meaningless op?
-        }
-
-        [NotNull]
-        public static Timestamp GetTimestamp(Guid guid)
-        {
-            var bytes = guid.ToByteArray();
-
-            // octets[ver_and_timestamp_hi] := 0000xxxx
-            bytes[versionOffset] &= (byte)versionByteMask;
-            bytes[versionOffset] |= (byte)((byte)GuidVersion.TimeBased >> versionByteShift); // todo (timeguid): meaningless op?
-
-            var ticks = BitConverter.ToInt64(bytes, 0); // todo (timeguid): use EndianBitConverter.Little
-            return new Timestamp(ticks + GregorianCalendarStart.Ticks);
-        }
-
-        public static ushort GetClockSequence(Guid guid)
-        {
-            var bytes = guid.ToByteArray();
-            return EndianBitConverter.Big.ToUInt16(new[] {(byte)(bytes[clockSequenceHighByteOffset] ^ 0x80), (byte)(bytes[clockSequenceLowByteOffset] ^ 0x80)}, 0);
-        }
-
-        [NotNull]
-        public static byte[] GetNode(Guid guid)
-        {
-            var result = new byte[nodeSize];
-            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, nodeSize); // todo (timeguid): why not ^0x80 ?
-            return result;
-        }
-
         public static Guid Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
             if(node.Length != nodeSize)
@@ -103,6 +70,39 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             guid[variantOffset] |= (byte)variantByteShift;
 
             return new Guid(guid);
+        }
+
+        public static GuidVersion GetVersion(Guid guid)
+        {
+            var bytes = guid.ToByteArray();
+            return (GuidVersion)((bytes[versionOffset] & 0xff) >> versionByteShift); // todo (timeguid): & 0xff - meaningless op?
+        }
+
+        [NotNull]
+        public static Timestamp GetTimestamp(Guid guid)
+        {
+            var bytes = guid.ToByteArray();
+
+            // octets[ver_and_timestamp_hi] := 0000xxxx
+            bytes[versionOffset] &= (byte)versionByteMask;
+            bytes[versionOffset] |= (byte)((byte)GuidVersion.TimeBased >> versionByteShift); // todo (timeguid): meaningless op?
+
+            var ticks = BitConverter.ToInt64(bytes, 0); // todo (timeguid): use EndianBitConverter.Little
+            return new Timestamp(ticks + GregorianCalendarStart.Ticks);
+        }
+
+        public static ushort GetClockSequence(Guid guid)
+        {
+            var bytes = guid.ToByteArray();
+            return EndianBitConverter.Big.ToUInt16(new[] {(byte)(bytes[clockSequenceHighByteOffset] ^ 0x80), (byte)(bytes[clockSequenceLowByteOffset] ^ 0x80)}, 0);
+        }
+
+        [NotNull]
+        public static byte[] GetNode(Guid guid)
+        {
+            var result = new byte[nodeSize];
+            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, nodeSize); // todo (timeguid): why not ^0x80 ?
+            return result;
         }
 
         private const int versionOffset = 7;
