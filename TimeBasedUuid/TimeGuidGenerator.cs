@@ -20,12 +20,12 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public static Guid MinGuidForTimestamp([NotNull] Timestamp timestamp)
         {
-            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.ClockSequenceMinValue, minNode);
+            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MinClockSequence, minNode);
         }
 
         public static Guid MaxGuidForTimestamp([NotNull] Timestamp timestamp)
         {
-            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.ClockSequenceMaxValue, maxNode);
+            return TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MaxClockSequence, maxNode);
         }
 
         public Guid NewGuid()
@@ -68,7 +68,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private ushort GenerateRandomClockSequence()
         {
             lock(rng)
-                return rng.NextUshort(TimeGuidFormatter.ClockSequenceMinValue, TimeGuidFormatter.ClockSequenceMaxValue);
+                return rng.NextUshort(TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MaxClockSequence);
         }
 
         private const int maxCountValuesWithOneNode = 1000;
@@ -88,7 +88,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         private static readonly byte[] minNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
         private static readonly byte[] maxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
-        public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, TimeGuidFormatter.ClockSequenceMinValue, minNode);
-        public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, TimeGuidFormatter.ClockSequenceMaxValue, maxNode);
+        public static readonly Guid MinGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarStart, TimeGuidFormatter.MinClockSequence, minNode);
+        public static readonly Guid MaxGuid = TimeGuidFormatter.Format(TimeGuidFormatter.GregorianCalendarEnd, TimeGuidFormatter.MaxClockSequence, maxNode);
     }
 }

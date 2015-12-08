@@ -3,11 +3,9 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
-
-namespace SKBKontur.Catalogue.Objects
+namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
-    public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
+    public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
             : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
@@ -17,78 +15,47 @@ namespace SKBKontur.Catalogue.Objects
         public TimeGuid(Guid guid)
         {
             if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
-                throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
-            this.Guid = guid;
+                throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
+            this.guid = guid;
         }
 
-        [NotNull]
-        public static TimeGuid MinForTimestamp([NotNull] Timestamp timestamp)
+        public static bool TryParse([CanBeNull] string str, out TimeGuid result)
         {
-            return new TimeGuid(TimeGuidGenerator.MinGuidForTimestamp(timestamp));
-        }
-
-        [NotNull]
-        public static TimeGuid MaxForTimestamp([NotNull] Timestamp timestamp)
-        {
-            return new TimeGuid(TimeGuidGenerator.MaxGuidForTimestamp(timestamp));
-        }
-
-        [NotNull]
-        public static TimeGuid NowGuid()
-        {
-            return new TimeGuid(guidGen.NewGuid());
-        }
-
-        [NotNull]
-        public static TimeGuid NewGuid([NotNull] Timestamp timestamp)
-        {
-            return new TimeGuid(guidGen.NewGuid(timestamp));
-        }
-
-        [NotNull]
-        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
-        {
-            return new TimeGuid(guidGen.NewGuid(timestamp, clockSequence));
-        }
-
-        public Guid ToGuid()
-        {
-            return Guid;
+            result = null;
+            Guid guid;
+            if(!Guid.TryParse(str, out guid))
+                return false;
+            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+                return false;
+            result = new TimeGuid(guid);
+            return true;
         }
 
         [NotNull]
         public Timestamp GetTimestamp()
         {
-            return TimeGuidFormatter.GetTimestamp(Guid);
+            return TimeGuidFormatter.GetTimestamp(guid);
         }
 
         public ushort GetClockSequence()
         {
-            return TimeGuidFormatter.GetClockSequence(Guid);
+            return TimeGuidFormatter.GetClockSequence(guid);
         }
 
         [NotNull]
         public byte[] GetNode()
         {
-            return TimeGuidFormatter.GetNode(Guid);
+            return TimeGuidFormatter.GetNode(guid);
         }
 
-        public static bool TryParse(string input, out TimeGuid result)
+        public Guid ToGuid()
         {
-            result = null;
-            Guid guid;
-            if(!Guid.TryParse(input, out guid))
-                return false;
-            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
-                return false;
-
-            result = new TimeGuid(guid);
-            return true;
+            return guid;
         }
 
         public override string ToString()
         {
-            return string.Format("Guid: {0}, Timestamp: {1}", Guid, GetTimestamp());
+            return string.Format("Guid: {0}, Timestamp: {1}, ClockSequence: {2}", guid, GetTimestamp(), GetClockSequence());
         }
 
         public bool Equals([CanBeNull] TimeGuid other)
@@ -97,7 +64,7 @@ namespace SKBKontur.Catalogue.Objects
                 return false;
             if(ReferenceEquals(this, other))
                 return true;
-            return Guid == other.Guid;
+            return guid.Equals(other.guid);
         }
 
         public override bool Equals([CanBeNull] object obj)
@@ -106,22 +73,22 @@ namespace SKBKontur.Catalogue.Objects
                 return false;
             if(ReferenceEquals(this, obj))
                 return true;
-            if(obj.GetType() != GetType())
-                return false;
-            return Equals((TimeGuid)obj);
+            return obj is TimeGuid && Equals((TimeGuid)obj);
         }
 
         public override int GetHashCode()
         {
-            return Guid.GetHashCode();
+            return guid.GetHashCode();
         }
 
-        public static bool operator ==([CanBeNull] TimeGuid left, [CanBeNull] TimeGuid right)
+        
+
+        public static bool operator ==(TimeGuid left, TimeGuid right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=([CanBeNull] TimeGuid left, [CanBeNull] TimeGuid right)
+        public static bool operator !=(TimeGuid left, TimeGuid right)
         {
             return !Equals(left, right);
         }
@@ -146,32 +113,59 @@ namespace SKBKontur.Catalogue.Objects
             return Comparer<TimeGuid>.Default.Compare(left, right) <= 0;
         }
 
-        public int CompareTo(TimeGuid other)
+        public int CompareTo([CanBeNull] TimeGuid other)
         {
-            if(other == null)
+            if (other == null)
                 return 1;
             var result = GetTimestamp().CompareTo(other.GetTimestamp());
-            if(result == 0)
+            if (result != 0)
+                return result;
+            var bytes = guid.ToByteArray();
+            var otherBytes = other.guid.ToByteArray();
+            for (var i = 8; i < bytes.Length; i++)
             {
-                var bytes = ToGuid().ToByteArray();
-                var otherBytes = other.ToGuid().ToByteArray();
-                for(var i = 8; i < bytes.Length; i++)
-                {
-                    if(bytes[i] == otherBytes[i])
-                        continue;
-
-                    if((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80))
-                        return 1;
-                    return -1;
-                }
+                if (bytes[i] == otherBytes[i])
+                    continue;
+                if ((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80)) // todo (timeguid): refactor and move closer to byte formatting
+                    return 1;
+                return -1;
             }
-            return result;
+            return 0;
         }
 
-        public int CompareTo(object obj)
+        [NotNull]
+        public static TimeGuid NowGuid()
         {
-            return CompareTo(obj as TimeGuid);
+            return new TimeGuid(guidGen.NewGuid());
         }
+
+        [NotNull]
+        public static TimeGuid NewGuid([NotNull] Timestamp timestamp)
+        {
+            return new TimeGuid(guidGen.NewGuid(timestamp));
+        }
+
+        [NotNull]
+        public static TimeGuid NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
+        {
+            return new TimeGuid(guidGen.NewGuid(timestamp, clockSequence));
+        }
+
+        [NotNull]
+        public static TimeGuid MinForTimestamp([NotNull] Timestamp timestamp)
+        {
+            return new TimeGuid(TimeGuidGenerator.MinGuidForTimestamp(timestamp));
+        }
+
+        [NotNull]
+        public static TimeGuid MaxForTimestamp([NotNull] Timestamp timestamp)
+        {
+            return new TimeGuid(TimeGuidGenerator.MaxGuidForTimestamp(timestamp));
+        }
+
+        // ReSharper disable once InconsistentNaming
+        // (sic!) guid is not a field for grobuf compatibility
+        private Guid guid { get; set; }
 
         [NotNull]
         public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidGenerator.MinGuid);
@@ -179,7 +173,6 @@ namespace SKBKontur.Catalogue.Objects
         [NotNull]
         public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidGenerator.MaxGuid);
 
-        private Guid Guid { get; set; }
         private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }
 }
