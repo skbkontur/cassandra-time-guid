@@ -2,7 +2,7 @@
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Objects.BitConversion
+namespace SKBKontur.Catalogue.Objects.Bits
 {
     public static class BitHelper
     {

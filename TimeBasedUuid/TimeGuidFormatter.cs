@@ -3,7 +3,7 @@ using System.Linq;
 
 using JetBrains.Annotations;
 
-using SKBKontur.Catalogue.Objects.BitConversion;
+using SKBKontur.Catalogue.Objects.Bits;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {

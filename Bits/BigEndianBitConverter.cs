@@ -4,13 +4,13 @@
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
 */
 
-namespace SKBKontur.Catalogue.Objects.BitConversion
+namespace SKBKontur.Catalogue.Objects.Bits
 {
     /// <summary>
-    ///     Implementation of EndianBitConverter which converts to/from little-endian
+    ///     Implementation of EndianBitConverter which converts to/from big-endian
     ///     byte arrays.
     /// </summary>
-    public sealed class LittleEndianBitConverter : EndianBitConverter
+    public sealed class BigEndianBitConverter : EndianBitConverter
     {
         /// <summary>
         ///     Indicates the byte order ("endianess") in which data is converted using this class.
@@ -21,15 +21,15 @@ namespace SKBKontur.Catalogue.Objects.BitConversion
         ///     most significant byte is on the right end of a word.
         /// </remarks>
         /// <returns>true if this converter is little-endian, false otherwise.</returns>
-        public override sealed bool IsLittleEndian()
+        public override bool IsLittleEndian()
         {
-            return true;
+            return false;
         }
 
         /// <summary>
         ///     Indicates the byte order ("endianess") in which data is converted using this class.
         /// </summary>
-        public override sealed Endianness Endianness { get { return Endianness.LittleEndian; } }
+        public override Endianness Endianness { get { return Endianness.BigEndian; } }
 
         /// <summary>
         ///     Copies the specified number of bytes from value to buffer, starting at index.
@@ -40,9 +40,10 @@ namespace SKBKontur.Catalogue.Objects.BitConversion
         /// <param name="index">The index to start at</param>
         protected override void CopyBytesImpl(long value, int bytes, byte[] buffer, int index)
         {
+            int endOffset = index + bytes - 1;
             for(int i = 0; i < bytes; i++)
             {
-                buffer[i + index] = unchecked((byte)(value & 0xff));
+                buffer[endOffset - i] = unchecked((byte)(value & 0xff));
                 value = value >> 8;
             }
         }
@@ -59,7 +60,7 @@ namespace SKBKontur.Catalogue.Objects.BitConversion
         {
             long ret = 0;
             for(int i = 0; i < bytesToConvert; i++)
-                ret = unchecked((ret << 8) | buffer[startIndex + bytesToConvert - 1 - i]);
+                ret = unchecked((ret << 8) | buffer[startIndex + i]);
             return ret;
         }
     }

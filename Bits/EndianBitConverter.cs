@@ -7,7 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace SKBKontur.Catalogue.Objects.BitConversion
+namespace SKBKontur.Catalogue.Objects.Bits
 {
     /// <summary>
     /// Equivalent of System.BitConverter, but with either endianness.

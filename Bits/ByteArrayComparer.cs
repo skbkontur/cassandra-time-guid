@@ -1,8 +1,11 @@
-﻿namespace SKBKontur.Catalogue.Objects.BitConversion
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+namespace SKBKontur.Catalogue.Objects.Bits
 {
-    public static class ByteArrayHelpers
+    public class ByteArrayComparer : IEqualityComparer<byte[]>, IComparer<byte[]>
     {
-        public static bool Equals(byte[] x, byte[] y)
+        public bool Equals(byte[] x, byte[] y)
         {
             if(x == null ^ y == null)
                 return false;
@@ -10,10 +13,10 @@
                 return true;
             if(x.Length != y.Length)
                 return false;
-            return memcmp(x, 0, y, 0, x.Length) == 0;
+            return Memcmp(x, y, x.Length) == 0;
         }
 
-        public static int Compare(byte[] x, byte[] y)
+        public int Compare(byte[] x, byte[] y)
         {
             if(x == null)
                 return y == null ? 0 : -1;
@@ -21,49 +24,60 @@
                 return 1;
             if(ReferenceEquals(x, y))
                 return 0;
-            return CompareRanges(x, 0, x.Length, y, 0, y.Length);
-        }
-
-        public static int CompareRanges(byte[] b1, int b1Offset, int b1Length, byte[] b2, int b2Offset, int b2Length)
-        {
-            if (b1Length == b2Length)
-                return memcmp(b1, b1Offset, b2, b2Offset, b1Length);
-            if (b1Length < b2Length)
+            if(x.Length < y.Length)
             {
-                var res = memcmp(b1, b1Offset, b2, b2Offset, b1Length);
+                var res = Memcmp(x, y, x.Length);
                 return res != 0 ? res : -1;
             }
-            else
+            if(x.Length > y.Length)
             {
-                var res = memcmp(b1, b1Offset, b2, b2Offset, b2Length);
+                var res = Memcmp(x, y, y.Length);
                 return res != 0 ? res : 1;
             }
+            return Memcmp(x, y, x.Length);
         }
 
-        public static bool LessThan(this byte[] x, byte[] y)
+        public int GetHashCode(byte[] bytes)
         {
-            return Compare(x, y) < 0;
-        }
-
-        public static bool GreaterThan(this byte[] x, byte[] y)
-        {
-            return Compare(x, y) > 0;
+            if(bytes == null)
+                return 0;
+            unchecked
+            {
+                unsafe
+                {
+                    var length = bytes.Length;
+                    var hashCode = length;
+                    fixed(byte* bytesPtr = bytes)
+                    {
+                        var i = 0;
+                        var currentIntPtr = (int*)bytesPtr;
+                        var intsBound = length - sizeof(int);
+                        for(; i <= intsBound; i += sizeof(int), currentIntPtr++)
+                            hashCode = (hashCode * 397) ^ (*currentIntPtr);
+                        var currentBytePtr = (byte*)currentIntPtr;
+                        for(; i < length; i++, currentBytePtr++)
+                            hashCode = (hashCode * 397) ^ (*currentBytePtr);
+                        return hashCode;
+                    }
+                }
+            }
         }
 
         /// <remarks>
         ///     Code from
         ///     https://github.com/ravendb/ravendb/blob/a13de74595846cac6ee5e254a13ef868d2b31779/Raven.Voron/Voron/Util/MemoryUtils.cs#L11
         /// </remarks>
-        private static unsafe int memcmp(byte[] b1, int b1Offset, byte[] b2, int b2Offset, long n)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int Memcmp(byte[] x, byte[] y, long n)
         {
             if(n == 0)
                 return 0;
-            fixed(byte* pb1 = b1)
+            fixed(byte* px = x)
             {
-                fixed(byte* pb2 = b2)
+                fixed(byte* py = y)
                 {
-                    var lhs = pb1 + b1Offset;
-                    var rhs = pb2 + b2Offset;
+                    var lhs = px;
+                    var rhs = py;
                     const int sizeOfUInt = BitHelper.UintSize;
 
                     if(n > sizeOfUInt)
@@ -115,5 +129,7 @@
                 }
             }
         }
+
+        public static readonly ByteArrayComparer Instance = new ByteArrayComparer();
     }
 }
