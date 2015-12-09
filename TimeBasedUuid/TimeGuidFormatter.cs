@@ -39,7 +39,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     {
         public static Guid Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
-            if(node.Length != nodeSize)
+            if(node.Length != NodeSize)
                 throw new InvalidProgramStateException("node must be 6 bytes long");
             if(timestamp < GregorianCalendarStart)
                 throw new InvalidProgramStateException(string.Format("timestamp must not be less than {0}", GregorianCalendarStart));
@@ -100,8 +100,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] GetNode(Guid guid)
         {
-            var result = new byte[nodeSize];
-            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, nodeSize); // todo (timeguid): why not ^0x80 ?
+            var result = new byte[NodeSize];
+            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, NodeSize); // todo (timeguid): why not ^0x80 ?
             return result;
         }
 
@@ -116,7 +116,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private const int clockSequenceHighByteOffset = 8;
         private const int clockSequenceLowByteOffset = 9;
 
-        private const int nodeSize = 6;
+        public const int NodeSize = 6;
         private const int nodeOffset = 10;
 
         public const ushort MinClockSequence = 0;

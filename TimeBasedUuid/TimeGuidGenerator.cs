@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
-using System.Threading;
 
 using JetBrains.Annotations;
 
@@ -11,27 +9,11 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public TimeGuidGenerator([NotNull] PreciseTimestampGenerator preciseTimestampGenerator)
         {
             this.preciseTimestampGenerator = preciseTimestampGenerator;
-            rng = new Random(Guid.NewGuid().GetHashCode());
-            rngCryptoService = new RNGCryptoServiceProvider();
-            defaultNode = GenerateRandomNode();
-            defaultClockSequence = GenerateRandomClockSequence();
-            countValuesWithOneNode = 0;
         }
 
         public Guid NewGuid()
         {
-            if(Interlocked.Increment(ref countValuesWithOneNode) > maxCountValuesWithOneNode)
-            {
-                lock(lockObject)
-                {
-                    if(Interlocked.Increment(ref countValuesWithOneNode) > maxCountValuesWithOneNode)
-                    {
-                        Interlocked.Exchange(ref defaultNode, GenerateRandomNode());
-                        Interlocked.Exchange(ref countValuesWithOneNode, 1);
-                    }
-                }
-            }
-            return TimeGuidFormatter.Format(preciseTimestampGenerator.Now(), defaultClockSequence, defaultNode);
+            return TimeGuidFormatter.Format(preciseTimestampGenerator.Now(), GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
         public Guid NewGuid([NotNull] Timestamp timestamp)
@@ -47,27 +29,17 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         private byte[] GenerateRandomNode()
         {
-            lock(rngCryptoService)
-            {
-                var bytes = new byte[6];
-                rngCryptoService.GetBytes(bytes);
-                return bytes;
-            }
+            lock(rng)
+                return rng.NextBytes(TimeGuidFormatter.NodeSize);
         }
 
         private ushort GenerateRandomClockSequence()
         {
             lock(rng)
-                return rng.NextUshort(TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MaxClockSequence);
+                return rng.NextUshort(TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MaxClockSequence + 1);
         }
 
-        private const int maxCountValuesWithOneNode = 1000;
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
-        private readonly Random rng;
-        private byte[] defaultNode;
-        private readonly ushort defaultClockSequence;
-        private readonly RNGCryptoServiceProvider rngCryptoService;
-        private int countValuesWithOneNode;
-        private readonly object lockObject = new object();
+        private readonly Random rng = new Random(Guid.NewGuid().GetHashCode());
     }
 }
