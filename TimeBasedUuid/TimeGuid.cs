@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
-    public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>
+    public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
             : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
@@ -67,13 +67,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return guid.Equals(other.guid);
         }
 
-        public override bool Equals([CanBeNull] object obj)
+        public override bool Equals([CanBeNull] object other)
         {
-            if(ReferenceEquals(null, obj))
+            if(ReferenceEquals(null, other))
                 return false;
-            if(ReferenceEquals(this, obj))
+            if(ReferenceEquals(this, other))
                 return true;
-            return obj is TimeGuid && Equals((TimeGuid)obj);
+            return other is TimeGuid && Equals((TimeGuid)other);
         }
 
         public override int GetHashCode()
@@ -82,8 +82,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         }
 
         /// <remarks>
-        /// Cassandra TimeUUIDType first compares the first 0-7 octets as timestamps (time_hi, then time_mid, then time_low)
-        /// and then if timestamps are equal compares the last 8-15 octets as signed byte arrays lexicographically
+        ///     Cassandra TimeUUIDType first compares the first 0-7 octets as timestamps (time_hi, then time_mid, then time_low)
+        ///     and then if timestamps are equal compares the last 8-15 octets as signed byte arrays lexicographically
         /// </remarks>
         public int CompareTo([CanBeNull] TimeGuid other)
         {
@@ -92,17 +92,25 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             var result = GetTimestamp().CompareTo(other.GetTimestamp());
             if(result != 0)
                 return result;
-            var bytes = guid.ToByteArray();
-            var otherBytes = other.guid.ToByteArray();
-            for(var i = 8; i < bytes.Length; i++)
+            result = GetClockSequence().CompareTo(other.GetClockSequence());
+            if(result != 0)
+                return result;
+            var node = GetNode();
+            var otherNode = other.GetNode();
+            if(node.Length != otherNode.Length)
+                throw new InvalidProgramStateException(string.Format("Node lengths are different for: {0} and {1}", this, other));
+            for(var i = 0; i < node.Length; i++)
             {
-                if(bytes[i] == otherBytes[i])
-                    continue;
-                if((bytes[i] ^ 0x80) > (otherBytes[i] ^ 0x80)) // todo (timeguid): refactor and move closer to byte formatting
-                    return 1;
-                return -1;
+                result = node[i].CompareTo(otherNode[i]);
+                if(result != 0)
+                    return result;
             }
             return 0;
+        }
+
+        public int CompareTo([CanBeNull] object other)
+        {
+            return CompareTo(other as TimeGuid);
         }
 
         public static bool operator ==(TimeGuid left, TimeGuid right)
