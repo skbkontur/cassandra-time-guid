@@ -54,6 +54,11 @@ namespace SKBKontur.Catalogue.Objects
             return new DateTime(ticks);
         }
 
+        public static TimeSpan NextTimeSpan([NotNull] this Random random, TimeSpan maxValue)
+        {
+            return TimeSpan.FromTicks((long)(random.NextDouble() * maxValue.Ticks));
+        }
+
         [NotNull]
         public static Timestamp NextTimestamp([NotNull] this Random random)
         {

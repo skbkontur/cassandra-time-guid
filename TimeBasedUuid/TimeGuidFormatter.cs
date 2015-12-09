@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 using JetBrains.Annotations;
 
@@ -48,70 +47,77 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             if(clockSequence > MaxClockSequence)
                 throw new InvalidProgramStateException(string.Format("clockSequence must not be greater than {0}", MaxClockSequence));
 
-            var ticks = (timestamp - GregorianCalendarStart).Ticks;
-            var ticksBytes = EndianBitConverter.Little.GetBytes(ticks);
-            if(ticksBytes.Length != 8)
-                throw new InvalidProgramStateException("ticks must be 8 bytes long");
-
-            var clockSequencebytes = EndianBitConverter.Big.GetBytes(clockSequence).Select(@byte => (byte)(@byte ^ 0x80)).ToArray(); // todo (timeguid): linq is slow
-
             var offset = 0;
             var guid = new byte[BitHelper.GuidSize];
-            BitHelper.BytesToBytes(ticksBytes, guid, ref offset);
-            BitHelper.BytesToBytes(clockSequencebytes, guid, ref offset);
-            BitHelper.BytesToBytes(node, guid, ref offset); // todo (timeguid): why not ^0x80 ?
+
+            var timestampTicks = (timestamp - GregorianCalendarStart).Ticks;
+            var timestampBytes = EndianBitConverter.Little.GetBytes(timestampTicks);
+            for(var i = 0; i < BitHelper.TimestampSize; i++)
+                guid[offset++] = timestampBytes[i];
+
+            // xor octets 8-15 with 10000000 for cassandra compatibility as it compares these octets as signed bytes
+            var clockSequencebytes = EndianBitConverter.Big.GetBytes(clockSequence);
+            for(var i = 0; i < BitHelper.UshortSize; i++)
+                guid[offset++] = (byte)(clockSequencebytes[i] ^ signBitMask);
+            for(var i = 0; i < NodeSize; i++)
+                guid[offset++] = (byte)(node[i] ^ signBitMask);
 
             // octets[ver_and_timestamp_hi] := 0001xxxx
-            guid[versionOffset] &= (byte)versionByteMask;
-            guid[versionOffset] |= (byte)((byte)GuidVersion.TimeBased << versionByteShift);
+            guid[versionOffset] &= versionByteMask;
+            guid[versionOffset] |= (byte)GuidVersion.TimeBased << versionByteShift;
 
             // octets[variant_and_clock_sequence] := 10xxxxxx
-            guid[variantOffset] &= (byte)variantByteMask;
-            guid[variantOffset] |= (byte)variantByteShift;
+            guid[variantOffset] &= variantByteMask;
+            guid[variantOffset] |= variantBitsValue;
 
             return new Guid(guid);
         }
 
         public static GuidVersion GetVersion(Guid guid)
         {
-            var bytes = guid.ToByteArray();
-            return (GuidVersion)((bytes[versionOffset] & 0xff) >> versionByteShift); // todo (timeguid): & 0xff - meaningless op?
+            var guidBytes = guid.ToByteArray();
+            return (GuidVersion)(guidBytes[versionOffset] >> versionByteShift);
         }
 
         [NotNull]
         public static Timestamp GetTimestamp(Guid guid)
         {
-            var bytes = guid.ToByteArray();
+            var guidBytes = guid.ToByteArray();
 
             // octets[ver_and_timestamp_hi] := 0000xxxx
-            bytes[versionOffset] &= (byte)versionByteMask;
-            bytes[versionOffset] |= (byte)((byte)GuidVersion.TimeBased >> versionByteShift); // todo (timeguid): meaningless op?
+            guidBytes[versionOffset] &= versionByteMask;
 
-            var ticks = BitConverter.ToInt64(bytes, 0); // todo (timeguid): use EndianBitConverter.Little
+            var ticks = EndianBitConverter.Little.ToInt64(guidBytes, 0);
             return new Timestamp(ticks + GregorianCalendarStart.Ticks);
         }
 
         public static ushort GetClockSequence(Guid guid)
         {
             var bytes = guid.ToByteArray();
-            return EndianBitConverter.Big.ToUInt16(new[] {(byte)(bytes[clockSequenceHighByteOffset] ^ 0x80), (byte)(bytes[clockSequenceLowByteOffset] ^ 0x80)}, 0);
+            var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
+            var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
+            return EndianBitConverter.Big.ToUInt16(new[] {clockSequenceHighByte, clockSequenceLowByte}, 0);
         }
 
         [NotNull]
         public static byte[] GetNode(Guid guid)
         {
-            var result = new byte[NodeSize];
-            Array.Copy(guid.ToByteArray(), nodeOffset, result, 0, NodeSize); // todo (timeguid): why not ^0x80 ?
-            return result;
+            var node = new byte[NodeSize];
+            var guidBytes = guid.ToByteArray();
+            for(var i = 0; i < NodeSize; i++)
+                node[i] = (byte)(guidBytes[nodeOffset + i] ^ signBitMask);
+            return node;
         }
 
+        private const int signBitMask = 0x80;
+
         private const int versionOffset = 7;
-        private const int versionByteMask = 0x0f;
+        private const byte versionByteMask = 0x0f;
         private const int versionByteShift = 4;
 
         private const int variantOffset = 8;
-        private const int variantByteMask = 0x3f;
-        private const int variantByteShift = 0x80;
+        private const byte variantByteMask = 0x3f;
+        private const byte variantBitsValue = 0x80;
 
         private const int clockSequenceHighByteOffset = 8;
         private const int clockSequenceLowByteOffset = 9;
@@ -122,8 +128,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public const ushort MinClockSequence = 0;
         public const ushort MaxClockSequence = 16383;
 
-        public static readonly byte[] MinNode = {0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
-        public static readonly byte[] MaxNode = {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f};
+        public static readonly byte[] MinNode = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        public static readonly byte[] MaxNode = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
         // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
         public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);
