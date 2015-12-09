@@ -18,7 +18,7 @@ namespace SKBKontur.Catalogue.Objects
         {
             if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
                 throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
-            this.guid = guid;
+            this.Guid = guid;
         }
 
         [NotNull]
@@ -53,24 +53,24 @@ namespace SKBKontur.Catalogue.Objects
 
         public Guid ToGuid()
         {
-            return guid;
+            return Guid;
         }
 
         [NotNull]
         public Timestamp GetTimestamp()
         {
-            return TimeGuidFormatter.GetTimestamp(guid);
+            return TimeGuidFormatter.GetTimestamp(Guid);
         }
 
         public ushort GetClockSequence()
         {
-            return TimeGuidFormatter.GetClockSequence(guid);
+            return TimeGuidFormatter.GetClockSequence(Guid);
         }
 
         [NotNull]
         public byte[] GetNode()
         {
-            return TimeGuidFormatter.GetNode(guid);
+            return TimeGuidFormatter.GetNode(Guid);
         }
 
         public static bool TryParse(string input, out TimeGuid result)
@@ -88,7 +88,7 @@ namespace SKBKontur.Catalogue.Objects
 
         public override string ToString()
         {
-            return string.Format("Guid: {0}, Timestamp: {1}", guid, GetTimestamp());
+            return string.Format("Guid: {0}, Timestamp: {1}", Guid, GetTimestamp());
         }
 
         public bool Equals([CanBeNull] TimeGuid other)
@@ -97,7 +97,7 @@ namespace SKBKontur.Catalogue.Objects
                 return false;
             if(ReferenceEquals(this, other))
                 return true;
-            return guid == other.guid;
+            return Guid == other.Guid;
         }
 
         public override bool Equals([CanBeNull] object obj)
@@ -113,7 +113,7 @@ namespace SKBKontur.Catalogue.Objects
 
         public override int GetHashCode()
         {
-            return guid.GetHashCode();
+            return Guid.GetHashCode();
         }
 
         public static bool operator ==([CanBeNull] TimeGuid left, [CanBeNull] TimeGuid right)
@@ -179,7 +179,7 @@ namespace SKBKontur.Catalogue.Objects
         [NotNull]
         public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidGenerator.MaxGuid);
 
-        private readonly Guid guid;
+        private Guid Guid { get; set; }
         private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }
 }
