@@ -126,12 +126,12 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private const int nodeOffset = 10;
 
         public const ushort MinClockSequence = 0;
-        public const ushort MaxClockSequence = 16383;
+        public const ushort MaxClockSequence = 16383; /* = 0x3fff */
 
         public static readonly byte[] MinNode = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         public static readonly byte[] MaxNode = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-        // offset to move from 1/1/0001, which is 0-time for .NET, to gregorian 0-time (1582-10-15 00:00:00Z)
+        // min timestamp representable by time-based UUID is gregorian calendar 0-time (1582-10-15 00:00:00Z)
         public static readonly Timestamp GregorianCalendarStart = new Timestamp(new DateTime(1582, 10, 15, 0, 0, 0, DateTimeKind.Utc).Ticks);
 
         // max timestamp representable by time-based UUID (~5236-03-31 21:21:00Z)
