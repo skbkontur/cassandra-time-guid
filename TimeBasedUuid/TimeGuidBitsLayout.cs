@@ -34,7 +34,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     //
     // Implementation is based on https://github.com/fluentcassandra/fluentcassandra/blob/master/src/GuidGenerator.cs
-    public static class TimeGuidFormatter
+    public static class TimeGuidBitsLayout
     {
         [NotNull]
         public static byte[] Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)

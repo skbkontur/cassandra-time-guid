@@ -11,13 +11,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
-            : this(TimeGuidFormatter.Format(timestamp, clockSequence, node))
+            : this(TimeGuidBitsLayout.Format(timestamp, clockSequence, node))
         {
         }
 
         public TimeGuid([NotNull] byte[] bytes)
         {
-            if(TimeGuidFormatter.GetVersion(bytes) != GuidVersion.TimeBased)
+            if(TimeGuidBitsLayout.GetVersion(bytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
             this.bytes = bytes;
         }
@@ -25,7 +25,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public TimeGuid(Guid guid)
         {
             var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
-            if(TimeGuidFormatter.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
+            if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
             bytes = timeGuidBytes;
         }
@@ -37,7 +37,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             if(!Guid.TryParse(str, out guid))
                 return false;
             var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
-            if(TimeGuidFormatter.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
+            if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 return false;
             result = new TimeGuid(timeGuidBytes);
             return true;
@@ -46,18 +46,18 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public Timestamp GetTimestamp()
         {
-            return TimeGuidFormatter.GetTimestamp(bytes);
+            return TimeGuidBitsLayout.GetTimestamp(bytes);
         }
 
         public ushort GetClockSequence()
         {
-            return TimeGuidFormatter.GetClockSequence(bytes);
+            return TimeGuidBitsLayout.GetClockSequence(bytes);
         }
 
         [NotNull]
         public byte[] GetNode()
         {
-            return TimeGuidFormatter.GetNode(bytes);
+            return TimeGuidBitsLayout.GetNode(bytes);
         }
 
         [NotNull]
@@ -182,13 +182,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static TimeGuid MinForTimestamp([NotNull] Timestamp timestamp)
         {
-            return new TimeGuid(TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MinNode));
+            return new TimeGuid(TimeGuidBitsLayout.Format(timestamp, TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MinNode));
         }
 
         [NotNull]
         public static TimeGuid MaxForTimestamp([NotNull] Timestamp timestamp)
         {
-            return new TimeGuid(TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MaxClockSequence, TimeGuidFormatter.MaxNode));
+            return new TimeGuid(TimeGuidBitsLayout.Format(timestamp, TimeGuidBitsLayout.MaxClockSequence, TimeGuidBitsLayout.MaxNode));
         }
 
         [NotNull]
@@ -204,10 +204,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private byte[] bytes { get; set; }
 
         [NotNull]
-        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidFormatter.MinTimeGuid);
+        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidBitsLayout.MinTimeGuid);
 
         [NotNull]
-        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidFormatter.MaxTimeGuid);
+        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidBitsLayout.MaxTimeGuid);
 
         private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }

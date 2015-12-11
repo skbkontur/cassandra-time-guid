@@ -14,32 +14,32 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public byte[] NewGuid()
         {
-            return TimeGuidFormatter.Format(preciseTimestampGenerator.Now(), GenerateRandomClockSequence(), GenerateRandomNode());
+            return TimeGuidBitsLayout.Format(preciseTimestampGenerator.Now(), GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
         [NotNull]
         public byte[] NewGuid([NotNull] Timestamp timestamp)
         {
-            return TimeGuidFormatter.Format(timestamp, GenerateRandomClockSequence(), GenerateRandomNode());
+            return TimeGuidBitsLayout.Format(timestamp, GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
         [NotNull]
         public byte[] NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
         {
-            return TimeGuidFormatter.Format(timestamp, clockSequence, GenerateRandomNode());
+            return TimeGuidBitsLayout.Format(timestamp, clockSequence, GenerateRandomNode());
         }
 
         [NotNull]
         private byte[] GenerateRandomNode()
         {
             lock(rng)
-                return rng.NextBytes(TimeGuidFormatter.NodeSize);
+                return rng.NextBytes(TimeGuidBitsLayout.NodeSize);
         }
 
         private ushort GenerateRandomClockSequence()
         {
             lock(rng)
-                return rng.NextUshort(TimeGuidFormatter.MinClockSequence, TimeGuidFormatter.MaxClockSequence + 1);
+                return rng.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
         }
 
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
