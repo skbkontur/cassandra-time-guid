@@ -11,17 +11,20 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             this.preciseTimestampGenerator = preciseTimestampGenerator;
         }
 
-        public Guid NewGuid()
+        [NotNull]
+        public byte[] NewGuid()
         {
             return TimeGuidFormatter.Format(preciseTimestampGenerator.Now(), GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
-        public Guid NewGuid([NotNull] Timestamp timestamp)
+        [NotNull]
+        public byte[] NewGuid([NotNull] Timestamp timestamp)
         {
             return TimeGuidFormatter.Format(timestamp, GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
-        public Guid NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
+        [NotNull]
+        public byte[] NewGuid([NotNull] Timestamp timestamp, ushort clockSequence)
         {
             return TimeGuidFormatter.Format(timestamp, clockSequence, GenerateRandomNode());
         }

@@ -11,8 +11,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     // Most significant long:
     // 0xFFFFFFFF00000000 time_low
     // 0x00000000FFFF0000 time_mid
-    // 0x000000000000FF0F time_hi
-    // 0x00000000000000F0 version
+    // 0x000000000000F000 version
+    // 0x0000000000000FFF time_hi
     //
     // Least significant long:
     // 0xC000000000000000 variant
@@ -24,9 +24,9 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     // |0               1               2               3              |
     // |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    // |(msb)                   time_low(0-3)                          |
+    // |(msb)                      time_low                            |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    // |         time_mid(0-1)         |  time_hi(0)   |  ver  |t_hi(1)|
+    // |           time_mid            |  ver  |       time_hi         |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     // |var| clkseq_hi |  clkseq_low   |           node(0-1)           |
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -36,7 +36,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     // Implementation is based on https://github.com/fluentcassandra/fluentcassandra/blob/master/src/GuidGenerator.cs
     public static class TimeGuidFormatter
     {
-        public static Guid Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
+        [NotNull]
+        public static byte[] Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
             if(node.Length != NodeSize)
                 throw new InvalidProgramStateException("node must be 6 bytes long");
@@ -47,71 +48,91 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             if(clockSequence > MaxClockSequence)
                 throw new InvalidProgramStateException(string.Format("clockSequence must not be greater than {0}", MaxClockSequence));
 
-            var offset = 0;
-            var guid = new byte[BitHelper.GuidSize];
-
             var timestampTicks = (timestamp - GregorianCalendarStart).Ticks;
             var timestampBytes = EndianBitConverter.Little.GetBytes(timestampTicks);
-            for(var i = 0; i < BitHelper.TimestampSize; i++)
-                guid[offset++] = timestampBytes[i];
+            var clockSequencebytes = EndianBitConverter.Big.GetBytes(clockSequence);
+
+            var bytes = new byte[BitHelper.TimeGuidSize];
+            bytes[0] = timestampBytes[3];
+            bytes[1] = timestampBytes[2];
+            bytes[2] = timestampBytes[1];
+            bytes[3] = timestampBytes[0];
+            bytes[4] = timestampBytes[5];
+            bytes[5] = timestampBytes[4];
+            bytes[6] = timestampBytes[7];
+            bytes[7] = timestampBytes[6];
 
             // xor octets 8-15 with 10000000 for cassandra compatibility as it compares these octets as signed bytes
-            var clockSequencebytes = EndianBitConverter.Big.GetBytes(clockSequence);
+            var offset = 8;
             for(var i = 0; i < BitHelper.UshortSize; i++)
-                guid[offset++] = (byte)(clockSequencebytes[i] ^ signBitMask);
+                bytes[offset++] = (byte)(clockSequencebytes[i] ^ signBitMask);
             for(var i = 0; i < NodeSize; i++)
-                guid[offset++] = (byte)(node[i] ^ signBitMask);
+                bytes[offset++] = (byte)(node[i] ^ signBitMask);
 
             // octets[ver_and_timestamp_hi] := 0001xxxx
-            guid[versionOffset] &= versionByteMask;
-            guid[versionOffset] |= (byte)GuidVersion.TimeBased << versionByteShift;
+            bytes[versionOffset] &= versionByteMask;
+            bytes[versionOffset] |= (byte)GuidVersion.TimeBased << versionByteShift;
 
             // octets[variant_and_clock_sequence] := 10xxxxxx
-            guid[variantOffset] &= variantByteMask;
-            guid[variantOffset] |= variantBitsValue;
+            bytes[variantOffset] &= variantByteMask;
+            bytes[variantOffset] |= variantBitsValue;
 
-            return new Guid(guid);
+            return bytes;
         }
 
-        public static GuidVersion GetVersion(Guid guid)
+        public static GuidVersion GetVersion([NotNull] byte[] bytes)
         {
-            var guidBytes = guid.ToByteArray();
-            return (GuidVersion)(guidBytes[versionOffset] >> versionByteShift);
+            if(bytes.Length != BitHelper.TimeGuidSize)
+                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+            return (GuidVersion)(bytes[versionOffset] >> versionByteShift);
         }
 
         [NotNull]
-        public static Timestamp GetTimestamp(Guid guid)
+        public static Timestamp GetTimestamp([NotNull] byte[] bytes)
         {
-            var guidBytes = guid.ToByteArray();
+            if(bytes.Length != BitHelper.TimeGuidSize)
+                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+
+            var timestampBytes = new byte[BitHelper.TimestampSize];
+            timestampBytes[0] = bytes[3];
+            timestampBytes[1] = bytes[2];
+            timestampBytes[2] = bytes[1];
+            timestampBytes[3] = bytes[0];
+            timestampBytes[4] = bytes[5];
+            timestampBytes[5] = bytes[4];
+            timestampBytes[6] = bytes[7];
+            timestampBytes[7] = bytes[6];
 
             // octets[ver_and_timestamp_hi] := 0000xxxx
-            guidBytes[versionOffset] &= versionByteMask;
+            timestampBytes[timestampBytes.Length - 1] &= versionByteMask;
 
-            var ticks = EndianBitConverter.Little.ToInt64(guidBytes, 0);
+            var ticks = EndianBitConverter.Little.ToInt64(timestampBytes, 0);
             return new Timestamp(ticks + GregorianCalendarStart.Ticks);
         }
 
-        public static ushort GetClockSequence(Guid guid)
+        public static ushort GetClockSequence([NotNull] byte[] bytes)
         {
-            var bytes = guid.ToByteArray();
+            if(bytes.Length != BitHelper.TimeGuidSize)
+                throw new InvalidProgramStateException("bytes must be 16 bytes long");
             var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
             var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
             return EndianBitConverter.Big.ToUInt16(new[] {clockSequenceHighByte, clockSequenceLowByte}, 0);
         }
 
         [NotNull]
-        public static byte[] GetNode(Guid guid)
+        public static byte[] GetNode([NotNull] byte[] bytes)
         {
+            if(bytes.Length != BitHelper.TimeGuidSize)
+                throw new InvalidProgramStateException("bytes must be 16 bytes long");
             var node = new byte[NodeSize];
-            var guidBytes = guid.ToByteArray();
             for(var i = 0; i < NodeSize; i++)
-                node[i] = (byte)(guidBytes[nodeOffset + i] ^ signBitMask);
+                node[i] = (byte)(bytes[nodeOffset + i] ^ signBitMask);
             return node;
         }
 
         private const int signBitMask = 0x80;
 
-        private const int versionOffset = 7;
+        private const int versionOffset = 6;
         private const byte versionByteMask = 0x0f;
         private const int versionByteShift = 4;
 
@@ -137,7 +158,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         // max timestamp representable by time-based UUID (~5236-03-31 21:21:00Z)
         public static readonly Timestamp GregorianCalendarEnd = new Timestamp(new DateTime(1652084544606846975L, DateTimeKind.Utc).Ticks);
 
-        public static readonly Guid MinGuid = Format(GregorianCalendarStart, MinClockSequence, MinNode);
-        public static readonly Guid MaxGuid = Format(GregorianCalendarEnd, MaxClockSequence, MaxNode);
+        public static readonly byte[] MinTimeGuid = Format(GregorianCalendarStart, MinClockSequence, MinNode);
+        public static readonly byte[] MaxTimeGuid = Format(GregorianCalendarEnd, MaxClockSequence, MaxNode);
     }
 }

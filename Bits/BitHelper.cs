@@ -14,6 +14,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         public const int DateTimeSize = LongSize;
         public const int TimestampSize = LongSize;
         public const int GuidSize = 16;
+        public const int TimeGuidSize = 16;
 
         public static void ByteToBytes(byte field, [NotNull] byte[] targetBuffer, ref int targetBufferOffset)
         {

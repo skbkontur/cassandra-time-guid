@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using JetBrains.Annotations;
+
+using SKBKontur.Catalogue.Objects.Bits;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
@@ -12,11 +15,19 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
         }
 
+        public TimeGuid([NotNull] byte[] bytes)
+        {
+            if(TimeGuidFormatter.GetVersion(bytes) != GuidVersion.TimeBased)
+                throw new InvalidProgramStateException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
+            this.bytes = bytes;
+        }
+
         public TimeGuid(Guid guid)
         {
-            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+            var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
+            if(TimeGuidFormatter.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
-            this.guid = guid;
+            bytes = timeGuidBytes;
         }
 
         public static bool TryParse([CanBeNull] string str, out TimeGuid result)
@@ -25,37 +36,44 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             Guid guid;
             if(!Guid.TryParse(str, out guid))
                 return false;
-            if(TimeGuidFormatter.GetVersion(guid) != GuidVersion.TimeBased)
+            var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
+            if(TimeGuidFormatter.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 return false;
-            result = new TimeGuid(guid);
+            result = new TimeGuid(timeGuidBytes);
             return true;
         }
 
         [NotNull]
         public Timestamp GetTimestamp()
         {
-            return TimeGuidFormatter.GetTimestamp(guid);
+            return TimeGuidFormatter.GetTimestamp(bytes);
         }
 
         public ushort GetClockSequence()
         {
-            return TimeGuidFormatter.GetClockSequence(guid);
+            return TimeGuidFormatter.GetClockSequence(bytes);
         }
 
         [NotNull]
         public byte[] GetNode()
         {
-            return TimeGuidFormatter.GetNode(guid);
+            return TimeGuidFormatter.GetNode(bytes);
+        }
+
+        [NotNull]
+        public byte[] ToByteArray()
+        {
+            return bytes;
         }
 
         public Guid ToGuid()
         {
-            return guid;
+            return new Guid(GuidBytesShuffle(bytes));
         }
 
         public override string ToString()
         {
-            return string.Format("Guid: {0}, Timestamp: {1}, ClockSequence: {2}", guid, GetTimestamp(), GetClockSequence());
+            return string.Format("Guid: {0}, Timestamp: {1}, ClockSequence: {2}", ToGuid(), GetTimestamp(), GetClockSequence());
         }
 
         public bool Equals([CanBeNull] TimeGuid other)
@@ -64,7 +82,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 return false;
             if(ReferenceEquals(this, other))
                 return true;
-            return guid.Equals(other.guid);
+            return ByteArrayComparer.Instance.Equals(bytes, other.bytes);
         }
 
         public override bool Equals([CanBeNull] object other)
@@ -78,7 +96,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public override int GetHashCode()
         {
-            return guid.GetHashCode();
+            return ByteArrayComparer.Instance.GetHashCode(bytes);
         }
 
         /// <remarks>
@@ -173,15 +191,23 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return new TimeGuid(TimeGuidFormatter.Format(timestamp, TimeGuidFormatter.MaxClockSequence, TimeGuidFormatter.MaxNode));
         }
 
+        [NotNull]
+        private static byte[] GuidBytesShuffle([NotNull] byte[] b)
+        {
+            if(b.Length != BitHelper.TimeGuidSize)
+                throw new InvalidProgramStateException("b must be 16 bytes long");
+            return new[] {b[3], b[2], b[1], b[0], b[5], b[4], b[7], b[6], b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]};
+        }
+
         // ReSharper disable once InconsistentNaming
-        // (sic!) guid is not a field for grobuf compatibility
-        private Guid guid { get; set; }
+        // (sic!) bytes is not a field for grobuf compatibility
+        private byte[] bytes { get; set; }
 
         [NotNull]
-        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidFormatter.MinGuid);
+        public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidFormatter.MinTimeGuid);
 
         [NotNull]
-        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidFormatter.MaxGuid);
+        public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidFormatter.MaxTimeGuid);
 
         private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }
