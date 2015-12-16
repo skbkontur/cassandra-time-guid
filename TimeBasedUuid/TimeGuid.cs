@@ -30,6 +30,15 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             bytes = timeGuidBytes;
         }
 
+        [NotNull]
+        public static TimeGuid Parse([CanBeNull] string str)
+        {
+            TimeGuid timeGuid;
+            if(!TryParse(str, out timeGuid))
+                throw new InvalidProgramStateException(string.Format("Cannot parse TimeGuid from: {0}", str));
+            return timeGuid;
+        }
+
         public static bool TryParse([CanBeNull] string str, out TimeGuid result)
         {
             result = null;
