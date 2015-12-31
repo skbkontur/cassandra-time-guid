@@ -14,7 +14,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public byte[] NewGuid()
         {
-            return TimeGuidBitsLayout.Format(preciseTimestampGenerator.Now(), GenerateRandomClockSequence(), GenerateRandomNode());
+            var nowTimestamp = new Timestamp(preciseTimestampGenerator.NowTicks());
+            return TimeGuidBitsLayout.Format(nowTimestamp, GenerateRandomClockSequence(), GenerateRandomNode());
         }
 
         [NotNull]

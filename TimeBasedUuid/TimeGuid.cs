@@ -218,6 +218,6 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidBitsLayout.MaxTimeGuid);
 
-        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
+        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(Timestamp.PreciseTimestampGeneratorInstance);
     }
 }

@@ -16,23 +16,21 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             stopwatch = Stopwatch.StartNew();
         }
 
-        [NotNull]
-        public Timestamp Now()
+        public long NowTicks()
         {
             lock(stopwatch)
-                return DoGetNow();
+                return DoGetNowTicks();
         }
 
-        [NotNull]
-        private Timestamp DoGetNow()
+        private long DoGetNowTicks()
         {
-            var nowTicks = GetNowTicks();
+            var nowTicks = GetDateTimeNowTicks();
             var resultTicks = GetResultTicks(nowTicks);
             lastTimestampTicks = resultTicks;
-            return new Timestamp(resultTicks);
+            return resultTicks;
         }
 
-        private long GetNowTicks()
+        private long GetDateTimeNowTicks()
         {
             var nowTicks = DateTime.UtcNow.Ticks;
             if(stopwatch.Elapsed > syncPeriod)

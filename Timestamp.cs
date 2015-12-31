@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 using SKBKontur.Catalogue.Objects.Json;
+using SKBKontur.Catalogue.Objects.TimeBasedUuid;
 
 namespace SKBKontur.Catalogue.Objects
 {
@@ -34,7 +35,7 @@ namespace SKBKontur.Catalogue.Objects
         }
 
         [NotNull]
-        public static Timestamp Now { get { return new Timestamp(DateTime.UtcNow); } }
+        public static Timestamp Now { get { return new Timestamp(PreciseTimestampGeneratorInstance.NowTicks()); } }
 
         public long Ticks { get; private set; }
 
@@ -190,5 +191,6 @@ namespace SKBKontur.Catalogue.Objects
 
         public static readonly Timestamp MinValue = new Timestamp(DateTime.MinValue.Ticks);
         public static readonly Timestamp MaxValue = new Timestamp(DateTime.MaxValue.Ticks);
+        public static readonly PreciseTimestampGenerator PreciseTimestampGeneratorInstance = PreciseTimestampGenerator.Instance;
     }
 }
