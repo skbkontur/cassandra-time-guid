@@ -40,7 +40,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static byte[] Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
             if(node.Length != NodeSize)
-                throw new InvalidProgramStateException("node must be 6 bytes long");
+                throw new InvalidProgramStateException(string.Format("node must be {0} bytes long", NodeSize));
             if(timestamp < GregorianCalendarStart)
                 throw new InvalidProgramStateException(string.Format("timestamp must not be less than {0}", GregorianCalendarStart));
             if(timestamp > GregorianCalendarEnd)
@@ -83,7 +83,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static GuidVersion GetVersion([NotNull] byte[] bytes)
         {
             if(bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+                throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             return (GuidVersion)(bytes[versionOffset] >> versionByteShift);
         }
 
@@ -91,7 +91,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static Timestamp GetTimestamp([NotNull] byte[] bytes)
         {
             if(bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+                throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
 
             var timestampBytes = new byte[BitHelper.TimestampSize];
             timestampBytes[0] = bytes[3];
@@ -113,7 +113,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static ushort GetClockSequence([NotNull] byte[] bytes)
         {
             if(bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+                throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
             var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
             return EndianBitConverter.Big.ToUInt16(new[] {clockSequenceHighByte, clockSequenceLowByte}, 0);
@@ -123,10 +123,36 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static byte[] GetNode([NotNull] byte[] bytes)
         {
             if(bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidProgramStateException("bytes must be 16 bytes long");
+                throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             var node = new byte[NodeSize];
             for(var i = 0; i < NodeSize; i++)
                 node[i] = (byte)(bytes[nodeOffset + i] ^ signBitMask);
+            return node;
+        }
+
+        [NotNull]
+        public static byte[] IncrementNode([NotNull] byte[] nodeBytes)
+        {
+            if(nodeBytes.Length != NodeSize)
+                throw new InvalidProgramStateException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
+            var carry = true;
+            var node = new byte[NodeSize];
+            for(var i = NodeSize - 1; i >= 0; i--)
+            {
+                var currentDigit = carry ? nodeBytes[i] + 1 : nodeBytes[i];
+                if(currentDigit > byte.MaxValue)
+                {
+                    node[i] = 0;
+                    carry = true;
+                }
+                else
+                {
+                    node[i] = (byte)currentDigit;
+                    carry = false;
+                }
+            }
+            if(carry)
+                throw new InvalidProgramStateException("Cannot increment MaxNode");
             return node;
         }
 
