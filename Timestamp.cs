@@ -51,7 +51,7 @@ namespace SKBKontur.Catalogue.Objects
 
         public override string ToString()
         {
-            return string.Format("Ticks: {0}, DateTime: {1}", Ticks, ToDateTime().ToString("u"));
+            return string.Format("Ticks: {0}, DateTime: {1}", Ticks, ToDateTime().ToString("O"));
         }
 
         public bool Equals([CanBeNull] Timestamp other)
