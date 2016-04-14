@@ -31,6 +31,8 @@ namespace SKBKontur.Catalogue.Objects
 
         public Timestamp(long ticks)
         {
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                throw new ArgumentOutOfRangeException("ticks", string.Format("Ticks {0} is not in range [{1}, {2}]", ticks, DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks));
             Ticks = ticks;
         }
 
@@ -117,16 +119,12 @@ namespace SKBKontur.Catalogue.Objects
         public static Timestamp operator +([NotNull] Timestamp left, TimeSpan right)
         {
             var ticks = left.Ticks + right.Ticks;
-            if(ticks < MinValue.Ticks || ticks > MaxValue.Ticks)
-                throw new ArgumentOutOfRangeException("right", "Result is unrepresentable timestamp");
             return new Timestamp(ticks);
         }
 
         public static Timestamp operator -([NotNull] Timestamp left, TimeSpan right)
         {
             var ticks = left.Ticks - right.Ticks;
-            if(ticks < MinValue.Ticks || ticks > MaxValue.Ticks)
-                throw new ArgumentOutOfRangeException("right", "Result is unrepresentable timestamp");
             return new Timestamp(ticks);
         }
 
