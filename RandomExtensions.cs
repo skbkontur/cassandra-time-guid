@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -69,6 +70,17 @@ namespace SKBKontur.Catalogue.Objects
         public static Guid NextGuid([NotNull] this Random random)
         {
             return new Guid(random.NextBytes(16));
+        }
+
+        public static void Shuffle<T>([NotNull] this Random random, [NotNull] List<T> list)
+        {
+            for(var i = 0; i < list.Count; i++)
+            {
+                var toSwap = random.Next(i, list.Count);
+                var temp = list[i];
+                list[i] = list[toSwap];
+                list[toSwap] = temp;
+            }
         }
     }
 }
