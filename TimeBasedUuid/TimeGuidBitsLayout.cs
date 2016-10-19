@@ -178,7 +178,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 }
             }
             if(carry)
-                throw new InvalidProgramStateException("Cannot increment MaxNode");
+                throw new InvalidProgramStateException("Cannot decrement MinNode");
             return node;
         }
 
