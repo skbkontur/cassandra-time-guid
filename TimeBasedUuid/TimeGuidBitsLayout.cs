@@ -155,6 +155,32 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                 throw new InvalidProgramStateException("Cannot increment MaxNode");
             return node;
         }
+        
+        [NotNull]
+        public static byte[] DecrementNode([NotNull] byte[] nodeBytes)
+        {
+            if(nodeBytes.Length != NodeSize)
+                throw new InvalidProgramStateException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
+            var carry = true;
+            var node = new byte[NodeSize];
+            for(var i = NodeSize - 1; i >= 0; i--)
+            {
+                var currentDigit = carry ? nodeBytes[i] - 1 : nodeBytes[i];
+                if(currentDigit < 0)
+                {
+                    node[i] = byte.MaxValue;
+                    carry = true;
+                }
+                else
+                {
+                    node[i] = (byte)currentDigit;
+                    carry = false;
+                }
+            }
+            if(carry)
+                throw new InvalidProgramStateException("Cannot increment MaxNode");
+            return node;
+        }
 
         private const int signBitMask = 0x80;
 
