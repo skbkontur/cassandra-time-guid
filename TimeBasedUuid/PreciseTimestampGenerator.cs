@@ -44,7 +44,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private long GetResultTicks(long nowTicks)
         {
             var elapsedTicks = stopwatch.Elapsed.Ticks;
-            var resultTicks = Math.Max(baseTimestampTicks + elapsedTicks, lastTimestampTicks + 1);
+            var resultTicks = Math.Max(baseTimestampTicks + elapsedTicks, lastTimestampTicks + TicksPerMicrosecond);
 
             // see http://stackoverflow.com/questions/1008345
             if(elapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
@@ -55,8 +55,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         private long GetSafeResultTicks(long nowTicks)
         {
-            return Math.Max(nowTicks, lastTimestampTicks + 1);
+            return Math.Max(nowTicks, lastTimestampTicks + TicksPerMicrosecond);
         }
+
+        public const long TicksPerMicrosecond = 10;
 
         [NotNull]
         public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));

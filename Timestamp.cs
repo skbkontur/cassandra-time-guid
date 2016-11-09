@@ -182,6 +182,12 @@ namespace SKBKontur.Catalogue.Objects
         }
 
         [NotNull]
+        public Timestamp AddMicroseconds(int value)
+        {
+            return AddTicks(PreciseTimestampGenerator.TicksPerMicrosecond * value);
+        }
+
+        [NotNull]
         public Timestamp AddTicks(long value)
         {
             return this + TimeSpan.FromTicks(value);
