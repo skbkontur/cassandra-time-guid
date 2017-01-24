@@ -24,7 +24,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public TimeGuid(Guid guid)
         {
-            var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
+            var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
             if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
             bytes = timeGuidBytes;
@@ -45,7 +45,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             Guid guid;
             if(!Guid.TryParse(str, out guid))
                 return false;
-            var timeGuidBytes = GuidBytesShuffle(guid.ToByteArray());
+            var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
             if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 return false;
             result = new TimeGuid(timeGuidBytes);
@@ -77,7 +77,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public Guid ToGuid()
         {
-            return new Guid(GuidBytesShuffle(bytes));
+            return new Guid(ReorderGuidBytesInCassandraWay(bytes));
         }
 
         public override string ToString()
@@ -201,7 +201,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         }
 
         [NotNull]
-        private static byte[] GuidBytesShuffle([NotNull] byte[] b)
+        private static byte[] ReorderGuidBytesInCassandraWay([NotNull] byte[] b)
         {
             if(b.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException("b must be 16 bytes long");
