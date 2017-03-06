@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 
 using JetBrains.Annotations;
 
@@ -9,53 +10,50 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     {
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
         {
-            this.syncPeriod = syncPeriod;
+            syncPeriodTicks = syncPeriod.Ticks;
             maxAllowedDivergenceTicks = maxAllowedDivergence.Ticks;
             baseTimestampTicks = DateTime.UtcNow.Ticks;
             lastTimestampTicks = baseTimestampTicks;
-            stopwatch = Stopwatch.StartNew();
+            stopwatchStartTicks = Stopwatch.GetTimestamp();
         }
 
         public long NowTicks()
         {
-            lock(stopwatch)
-                return DoGetNowTicks();
+            var lastValue = Volatile.Read(ref lastTimestampTicks);
+            while(true)
+            {
+                var nextValue = GenerateNextTimestamp(lastValue);
+                var originalValue = Interlocked.CompareExchange(ref lastTimestampTicks, nextValue, lastValue);
+                if(originalValue == lastValue)
+                    return nextValue;
+                lastValue = originalValue;
+            }
         }
 
-        private long DoGetNowTicks()
-        {
-            var nowTicks = GetDateTimeNowTicks();
-            var resultTicks = GetResultTicks(nowTicks);
-            lastTimestampTicks = resultTicks;
-            return resultTicks;
-        }
-
-        private long GetDateTimeNowTicks()
+        // todo (andrew, 06.03.2017): consider using high precision Win API function GetSystemTimePreciseAsFileTime (https://msdn.microsoft.com/en-us/library/windows/desktop/hh706895.aspx)
+        private long GenerateNextTimestamp(long localLastTimestampTicks)
         {
             var nowTicks = DateTime.UtcNow.Ticks;
-            if(stopwatch.Elapsed > syncPeriod)
-            {
-                baseTimestampTicks = nowTicks;
-                stopwatch.Restart();
-            }
-            return nowTicks;
-        }
 
-        private long GetResultTicks(long nowTicks)
-        {
-            var elapsedTicks = stopwatch.Elapsed.Ticks;
-            var resultTicks = Math.Max(baseTimestampTicks + elapsedTicks, lastTimestampTicks + TicksPerMicrosecond);
+            var localBaseTimestampTicks = Volatile.Read(ref baseTimestampTicks);
+            var stopwatchElapsedTicks = Stopwatch.GetTimestamp() - stopwatchStartTicks;
+            if(stopwatchElapsedTicks > syncPeriodTicks)
+            {
+                lock(this)
+                {
+                    baseTimestampTicks = localBaseTimestampTicks = nowTicks;
+                    stopwatchStartTicks = Stopwatch.GetTimestamp();
+                    stopwatchElapsedTicks = 0;
+                }
+            }
+
+            var resultTicks = Math.Max(localBaseTimestampTicks + stopwatchElapsedTicks, localLastTimestampTicks + TicksPerMicrosecond);
 
             // see http://stackoverflow.com/questions/1008345
-            if(elapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
-                return GetSafeResultTicks(nowTicks);
+            if(stopwatchElapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
+                return Math.Max(nowTicks, localLastTimestampTicks + TicksPerMicrosecond);
 
             return resultTicks;
-        }
-
-        private long GetSafeResultTicks(long nowTicks)
-        {
-            return Math.Max(nowTicks, lastTimestampTicks + TicksPerMicrosecond);
         }
 
         public const long TicksPerMicrosecond = 10;
@@ -63,9 +61,8 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
 
-        private readonly TimeSpan syncPeriod;
+        private readonly long syncPeriodTicks;
         private readonly long maxAllowedDivergenceTicks;
-        private readonly Stopwatch stopwatch;
-        private long baseTimestampTicks, lastTimestampTicks;
+        private long baseTimestampTicks, lastTimestampTicks, stopwatchStartTicks;
     }
 }
