@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 using JetBrains.Annotations;
 
@@ -33,17 +34,15 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         private byte[] GenerateRandomNode()
         {
-            lock(rng)
-                return rng.NextBytes(TimeGuidBitsLayout.NodeSize);
+            return rng.Value.NextBytes(TimeGuidBitsLayout.NodeSize);
         }
 
         private ushort GenerateRandomClockSequence()
         {
-            lock(rng)
-                return rng.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
+            return rng.Value.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
         }
 
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
-        private readonly Random rng = new Random(Guid.NewGuid().GetHashCode());
+        private readonly ThreadLocal<Random> rng = new ThreadLocal<Random>(() => new Random(Guid.NewGuid().GetHashCode()));
     }
 }
