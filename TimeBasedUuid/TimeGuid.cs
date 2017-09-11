@@ -208,6 +208,17 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return new[] {b[3], b[2], b[1], b[0], b[5], b[4], b[7], b[6], b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]};
         }
 
+        [NotNull]
+        public TimeGuid Before()
+        {
+            var timestamp = GetTimestamp();
+            if (this == MinForTimestamp(timestamp))
+                return MaxForTimestamp(timestamp - TimeSpan.FromTicks(1));
+            if (ByteArrayComparer.Instance.Equals(GetNode(), TimeGuidBitsLayout.MinNode))
+                return new TimeGuid(timestamp, (ushort)(GetClockSequence() - 1), TimeGuidBitsLayout.MaxNode);
+            return new TimeGuid(timestamp, GetClockSequence(), TimeGuidBitsLayout.DecrementNode(GetNode()));
+        }
+
         // ReSharper disable once InconsistentNaming
         // (sic!) bytes is not a field for grobuf compatibility
         private byte[] bytes { get; set; }
