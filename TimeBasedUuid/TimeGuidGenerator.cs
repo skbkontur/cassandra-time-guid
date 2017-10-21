@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
@@ -32,17 +29,16 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         }
 
         [NotNull]
-        private byte[] GenerateRandomNode()
+        private static byte[] GenerateRandomNode()
         {
-            return rng.Value.NextBytes(TimeGuidBitsLayout.NodeSize);
+            return ThreadLocalRandom.Instance.NextBytes(TimeGuidBitsLayout.NodeSize);
         }
 
-        private ushort GenerateRandomClockSequence()
+        private static ushort GenerateRandomClockSequence()
         {
-            return rng.Value.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
+            return ThreadLocalRandom.Instance.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
         }
 
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;
-        private readonly ThreadLocal<Random> rng = new ThreadLocal<Random>(() => new Random(Guid.NewGuid().GetHashCode()));
     }
 }
