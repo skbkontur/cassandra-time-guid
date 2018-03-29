@@ -10,11 +10,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     {
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
         {
+            if(!Stopwatch.IsHighResolution)
+                throw new InvalidProgramStateException("Stopwatch is not based on a high-resolution timer");
             syncPeriodTicks = syncPeriod.Ticks;
             maxAllowedDivergenceTicks = maxAllowedDivergence.Ticks;
             baseTimestampTicks = DateTime.UtcNow.Ticks;
             lastTimestampTicks = baseTimestampTicks;
-            stopwatchStartTicks = Stopwatch.GetTimestamp();
+            stopwatchStartTimestamp = Stopwatch.GetTimestamp();
         }
 
         public long NowTicks()
@@ -36,13 +38,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             var nowTicks = DateTime.UtcNow.Ticks;
 
             var localBaseTimestampTicks = Volatile.Read(ref baseTimestampTicks);
-            var stopwatchElapsedTicks = Stopwatch.GetTimestamp() - stopwatchStartTicks;
+            var stopwatchElapsedTicks = GetDateTimeTicks(Stopwatch.GetTimestamp() - stopwatchStartTimestamp);
             if(stopwatchElapsedTicks > syncPeriodTicks)
             {
                 lock(this)
                 {
                     baseTimestampTicks = localBaseTimestampTicks = nowTicks;
-                    stopwatchStartTicks = Stopwatch.GetTimestamp();
+                    stopwatchStartTimestamp = Stopwatch.GetTimestamp();
                     stopwatchElapsedTicks = 0;
                 }
             }
@@ -56,13 +58,22 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             return resultTicks;
         }
 
+        public static long GetDateTimeTicks(long stopwatchTicks)
+        {
+            double dticks = stopwatchTicks;
+            dticks *= stopwatchTickFrequency;
+            return unchecked((long)dticks);
+        }
+
         public const long TicksPerMicrosecond = 10;
+
+        private static readonly double stopwatchTickFrequency = (double)TicksPerMicrosecond * 1000 * 1000 / Stopwatch.Frequency;
 
         [NotNull]
         public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
 
         private readonly long syncPeriodTicks;
         private readonly long maxAllowedDivergenceTicks;
-        private long baseTimestampTicks, lastTimestampTicks, stopwatchStartTicks;
+        private long baseTimestampTicks, lastTimestampTicks, stopwatchStartTimestamp;
     }
 }
