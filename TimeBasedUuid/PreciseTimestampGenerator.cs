@@ -10,7 +10,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
     {
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
         {
-            if(!Stopwatch.IsHighResolution)
+            if (!Stopwatch.IsHighResolution)
                 throw new InvalidProgramStateException("Stopwatch is not based on a high-resolution timer");
             syncPeriodTicks = syncPeriod.Ticks;
             maxAllowedDivergenceTicks = maxAllowedDivergence.Ticks;
@@ -22,11 +22,11 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public long NowTicks()
         {
             var lastValue = Volatile.Read(ref lastTimestampTicks);
-            while(true)
+            while (true)
             {
                 var nextValue = GenerateNextTimestamp(lastValue);
                 var originalValue = Interlocked.CompareExchange(ref lastTimestampTicks, nextValue, lastValue);
-                if(originalValue == lastValue)
+                if (originalValue == lastValue)
                     return nextValue;
                 lastValue = originalValue;
             }
@@ -39,9 +39,9 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
             var localBaseTimestampTicks = Volatile.Read(ref baseTimestampTicks);
             var stopwatchElapsedTicks = GetDateTimeTicks(Stopwatch.GetTimestamp() - stopwatchStartTimestamp);
-            if(stopwatchElapsedTicks > syncPeriodTicks)
+            if (stopwatchElapsedTicks > syncPeriodTicks)
             {
-                lock(this)
+                lock (this)
                 {
                     baseTimestampTicks = localBaseTimestampTicks = nowTicks;
                     stopwatchStartTimestamp = Stopwatch.GetTimestamp();
@@ -52,7 +52,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             var resultTicks = Math.Max(localBaseTimestampTicks + stopwatchElapsedTicks, localLastTimestampTicks + TicksPerMicrosecond);
 
             // see http://stackoverflow.com/questions/1008345
-            if(stopwatchElapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
+            if (stopwatchElapsedTicks < 0 || Math.Abs(resultTicks - nowTicks) > maxAllowedDivergenceTicks)
                 return Math.Max(nowTicks, localLastTimestampTicks + TicksPerMicrosecond);
 
             return resultTicks;

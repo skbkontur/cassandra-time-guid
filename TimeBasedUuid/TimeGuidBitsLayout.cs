@@ -39,13 +39,13 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
-            if(node.Length != NodeSize)
+            if (node.Length != NodeSize)
                 throw new InvalidProgramStateException(string.Format("node must be {0} bytes long", NodeSize));
-            if(timestamp < GregorianCalendarStart)
+            if (timestamp < GregorianCalendarStart)
                 throw new InvalidProgramStateException(string.Format("timestamp must not be less than {0}", GregorianCalendarStart));
-            if(timestamp > GregorianCalendarEnd)
+            if (timestamp > GregorianCalendarEnd)
                 throw new InvalidProgramStateException(string.Format("timestamp must not be greater than {0}", GregorianCalendarEnd));
-            if(clockSequence > MaxClockSequence)
+            if (clockSequence > MaxClockSequence)
                 throw new InvalidProgramStateException(string.Format("clockSequence must not be greater than {0}", MaxClockSequence));
 
             var timestampTicks = (timestamp - GregorianCalendarStart).Ticks;
@@ -64,9 +64,9 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
             // xor octets 8-15 with 10000000 for cassandra compatibility as it compares these octets as signed bytes
             var offset = 8;
-            for(var i = 0; i < BitHelper.UshortSize; i++)
+            for (var i = 0; i < BitHelper.UshortSize; i++)
                 bytes[offset++] = (byte)(clockSequencebytes[i] ^ signBitMask);
-            for(var i = 0; i < NodeSize; i++)
+            for (var i = 0; i < NodeSize; i++)
                 bytes[offset++] = (byte)(node[i] ^ signBitMask);
 
             // octets[ver_and_timestamp_hi] := 0001xxxx
@@ -82,7 +82,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public static GuidVersion GetVersion([NotNull] byte[] bytes)
         {
-            if(bytes.Length != BitHelper.TimeGuidSize)
+            if (bytes.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             return (GuidVersion)(bytes[versionOffset] >> versionByteShift);
         }
@@ -90,7 +90,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static Timestamp GetTimestamp([NotNull] byte[] bytes)
         {
-            if(bytes.Length != BitHelper.TimeGuidSize)
+            if (bytes.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
 
             var timestampBytes = new byte[BitHelper.TimestampSize];
@@ -112,7 +112,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public static ushort GetClockSequence([NotNull] byte[] bytes)
         {
-            if(bytes.Length != BitHelper.TimeGuidSize)
+            if (bytes.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
             var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
@@ -122,10 +122,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] GetNode([NotNull] byte[] bytes)
         {
-            if(bytes.Length != BitHelper.TimeGuidSize)
+            if (bytes.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
             var node = new byte[NodeSize];
-            for(var i = 0; i < NodeSize; i++)
+            for (var i = 0; i < NodeSize; i++)
                 node[i] = (byte)(bytes[nodeOffset + i] ^ signBitMask);
             return node;
         }
@@ -133,14 +133,14 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         public static byte[] IncrementNode([NotNull] byte[] nodeBytes)
         {
-            if(nodeBytes.Length != NodeSize)
+            if (nodeBytes.Length != NodeSize)
                 throw new InvalidProgramStateException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
             var carry = true;
             var node = new byte[NodeSize];
-            for(var i = NodeSize - 1; i >= 0; i--)
+            for (var i = NodeSize - 1; i >= 0; i--)
             {
                 var currentDigit = carry ? nodeBytes[i] + 1 : nodeBytes[i];
-                if(currentDigit > byte.MaxValue)
+                if (currentDigit > byte.MaxValue)
                 {
                     node[i] = 0;
                     carry = true;
@@ -151,22 +151,22 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                     carry = false;
                 }
             }
-            if(carry)
+            if (carry)
                 throw new InvalidProgramStateException("Cannot increment MaxNode");
             return node;
         }
-        
+
         [NotNull]
         public static byte[] DecrementNode([NotNull] byte[] nodeBytes)
         {
-            if(nodeBytes.Length != NodeSize)
+            if (nodeBytes.Length != NodeSize)
                 throw new InvalidProgramStateException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
             var carry = true;
             var node = new byte[NodeSize];
-            for(var i = NodeSize - 1; i >= 0; i--)
+            for (var i = NodeSize - 1; i >= 0; i--)
             {
                 var currentDigit = carry ? nodeBytes[i] - 1 : nodeBytes[i];
-                if(currentDigit < 0)
+                if (currentDigit < 0)
                 {
                     node[i] = byte.MaxValue;
                     carry = true;
@@ -177,7 +177,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
                     carry = false;
                 }
             }
-            if(carry)
+            if (carry)
                 throw new InvalidProgramStateException("Cannot decrement MinNode");
             return node;
         }

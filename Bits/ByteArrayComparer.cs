@@ -7,29 +7,29 @@ namespace SKBKontur.Catalogue.Objects.Bits
     {
         public bool Equals(byte[] x, byte[] y)
         {
-            if(x == null ^ y == null)
+            if (x == null ^ y == null)
                 return false;
-            if(ReferenceEquals(x, y))
+            if (ReferenceEquals(x, y))
                 return true;
-            if(x.Length != y.Length)
+            if (x.Length != y.Length)
                 return false;
             return Memcmp(x, y, x.Length) == 0;
         }
 
         public int Compare(byte[] x, byte[] y)
         {
-            if(x == null)
+            if (x == null)
                 return y == null ? 0 : -1;
-            if(y == null)
+            if (y == null)
                 return 1;
-            if(ReferenceEquals(x, y))
+            if (ReferenceEquals(x, y))
                 return 0;
-            if(x.Length < y.Length)
+            if (x.Length < y.Length)
             {
                 var res = Memcmp(x, y, x.Length);
                 return res != 0 ? res : -1;
             }
-            if(x.Length > y.Length)
+            if (x.Length > y.Length)
             {
                 var res = Memcmp(x, y, y.Length);
                 return res != 0 ? res : 1;
@@ -39,7 +39,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
 
         public int GetHashCode(byte[] bytes)
         {
-            if(bytes == null)
+            if (bytes == null)
                 return 0;
             unchecked
             {
@@ -47,15 +47,15 @@ namespace SKBKontur.Catalogue.Objects.Bits
                 {
                     var length = bytes.Length;
                     var hashCode = length;
-                    fixed(byte* bytesPtr = bytes)
+                    fixed (byte* bytesPtr = bytes)
                     {
                         var i = 0;
                         var currentIntPtr = (int*)bytesPtr;
                         var intsBound = length - sizeof(int);
-                        for(; i <= intsBound; i += sizeof(int), currentIntPtr++)
+                        for (; i <= intsBound; i += sizeof(int), currentIntPtr++)
                             hashCode = (hashCode * 397) ^ (*currentIntPtr);
                         var currentBytePtr = (byte*)currentIntPtr;
-                        for(; i < length; i++, currentBytePtr++)
+                        for (; i < length; i++, currentBytePtr++)
                             hashCode = (hashCode * 397) ^ (*currentBytePtr);
                         return hashCode;
                     }
@@ -70,28 +70,28 @@ namespace SKBKontur.Catalogue.Objects.Bits
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe int Memcmp(byte[] x, byte[] y, long n)
         {
-            if(n == 0)
+            if (n == 0)
                 return 0;
-            fixed(byte* px = x)
+            fixed (byte* px = x)
             {
-                fixed(byte* py = y)
+                fixed (byte* py = y)
                 {
                     var lhs = px;
                     var rhs = py;
                     const int sizeOfUInt = BitHelper.UintSize;
 
-                    if(n > sizeOfUInt)
+                    if (n > sizeOfUInt)
                     {
                         var lUintAlignment = (long)lhs % sizeOfUInt;
                         var rUintAlignment = (long)rhs % sizeOfUInt;
 
-                        if(lUintAlignment != 0 && lUintAlignment == rUintAlignment)
+                        if (lUintAlignment != 0 && lUintAlignment == rUintAlignment)
                         {
                             var toAlign = sizeOfUInt - lUintAlignment;
-                            while(toAlign > 0)
+                            while (toAlign > 0)
                             {
                                 var r = *lhs++ - *rhs++;
-                                if(r != 0)
+                                if (r != 0)
                                     return r;
                                 n--;
 
@@ -102,9 +102,9 @@ namespace SKBKontur.Catalogue.Objects.Bits
                         var lp = (uint*)lhs;
                         var rp = (uint*)rhs;
 
-                        while(n > sizeOfUInt)
+                        while (n > sizeOfUInt)
                         {
-                            if(*lp != *rp)
+                            if (*lp != *rp)
                                 break;
 
                             lp++;
@@ -117,10 +117,10 @@ namespace SKBKontur.Catalogue.Objects.Bits
                         rhs = (byte*)rp;
                     }
 
-                    while(n > 0)
+                    while (n > 0)
                     {
                         var r = *lhs++ - *rhs++;
-                        if(r != 0)
+                        if (r != 0)
                             return r;
                         n--;
                     }

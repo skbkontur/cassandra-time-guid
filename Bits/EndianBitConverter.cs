@@ -10,55 +10,109 @@ using System.Runtime.InteropServices;
 namespace SKBKontur.Catalogue.Objects.Bits
 {
     /// <summary>
-    /// Equivalent of System.BitConverter, but with either endianness.
+    ///     Equivalent of System.BitConverter, but with either endianness.
     /// </summary>
     public abstract class EndianBitConverter
     {
-        #region Endianness of this converter
+        #region Private struct used for Single/Int32 conversions
+
         /// <summary>
-        /// Indicates the byte order ("endianess") in which data is converted using this class.
+        ///     Union used solely for the equivalent of DoubleToInt64Bits and vice versa.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        struct Int32SingleUnion
+        {
+            /// <summary>
+            ///     Creates an instance representing the given integer.
+            /// </summary>
+            /// <param name="i">The integer value of the new instance.</param>
+            internal Int32SingleUnion(int i)
+            {
+                this.f = 0; // Just to keep the compiler happy
+                this.i = i;
+            }
+
+            /// <summary>
+            ///     Creates an instance representing the given floating point number.
+            /// </summary>
+            /// <param name="f">The floating point value of the new instance.</param>
+            internal Int32SingleUnion(float f)
+            {
+                this.i = 0; // Just to keep the compiler happy
+                this.f = f;
+            }
+
+            /// <summary>
+            ///     Returns the value of the instance as an integer.
+            /// </summary>
+            internal int AsInt32 { get { return i; } }
+
+            /// <summary>
+            ///     Returns the value of the instance as a floating point number.
+            /// </summary>
+            internal float AsSingle { get { return f; } }
+
+            /// <summary>
+            ///     Int32 version of the value.
+            /// </summary>
+            [FieldOffset(0)]
+            int i;
+
+            /// <summary>
+            ///     Single version of the value.
+            /// </summary>
+            [FieldOffset(0)]
+            float f;
+        }
+
+        #endregion
+
+        #region Endianness of this converter
+
+        /// <summary>
+        ///     Indicates the byte order ("endianess") in which data is converted using this class.
         /// </summary>
         /// <remarks>
-        /// Different computer architectures store data using different byte orders. "Big-endian"
-        /// means the most significant byte is on the left end of a word. "Little-endian" means the 
-        /// most significant byte is on the right end of a word.
+        ///     Different computer architectures store data using different byte orders. "Big-endian"
+        ///     means the most significant byte is on the left end of a word. "Little-endian" means the
+        ///     most significant byte is on the right end of a word.
         /// </remarks>
         /// <returns>true if this converter is little-endian, false otherwise.</returns>
         public abstract bool IsLittleEndian();
 
         /// <summary>
-        /// Indicates the byte order ("endianess") in which data is converted using this class.
+        ///     Indicates the byte order ("endianess") in which data is converted using this class.
         /// </summary>
         public abstract Endianness Endianness { get; }
+
         #endregion
 
         #region Factory properties
+
         static LittleEndianBitConverter little = new LittleEndianBitConverter();
+
         /// <summary>
-        /// Returns a little-endian bit converter instance. The same instance is
-        /// always returned.
+        ///     Returns a little-endian bit converter instance. The same instance is
+        ///     always returned.
         /// </summary>
-        public static LittleEndianBitConverter Little
-        {
-            get { return little; }
-        }
+        public static LittleEndianBitConverter Little { get { return little; } }
 
         static BigEndianBitConverter big = new BigEndianBitConverter();
+
         /// <summary>
-        /// Returns a big-endian bit converter instance. The same instance is
-        /// always returned.
+        ///     Returns a big-endian bit converter instance. The same instance is
+        ///     always returned.
         /// </summary>
-        public static BigEndianBitConverter Big
-        {
-            get { return big; }
-        }
+        public static BigEndianBitConverter Big { get { return big; } }
+
         #endregion
 
         #region Double/primitive conversions
+
         /// <summary>
-        /// Converts the specified double-precision floating point number to a 
-        /// 64-bit signed integer. Note: the endianness of this converter does not
-        /// affect the returned value.
+        ///     Converts the specified double-precision floating point number to a
+        ///     64-bit signed integer. Note: the endianness of this converter does not
+        ///     affect the returned value.
         /// </summary>
         /// <param name="value">The number to convert. </param>
         /// <returns>A 64-bit signed integer whose value is equivalent to value.</returns>
@@ -68,9 +122,9 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Converts the specified 64-bit signed integer to a double-precision 
-        /// floating point number. Note: the endianness of this converter does not
-        /// affect the returned value.
+        ///     Converts the specified 64-bit signed integer to a double-precision
+        ///     floating point number. Note: the endianness of this converter does not
+        ///     affect the returned value.
         /// </summary>
         /// <param name="value">The number to convert. </param>
         /// <returns>A double-precision floating point number whose value is equivalent to value.</returns>
@@ -80,9 +134,9 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Converts the specified single-precision floating point number to a 
-        /// 32-bit signed integer. Note: the endianness of this converter does not
-        /// affect the returned value.
+        ///     Converts the specified single-precision floating point number to a
+        ///     32-bit signed integer. Note: the endianness of this converter does not
+        ///     affect the returned value.
         /// </summary>
         /// <param name="value">The number to convert. </param>
         /// <returns>A 32-bit signed integer whose value is equivalent to value.</returns>
@@ -92,9 +146,9 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Converts the specified 32-bit signed integer to a single-precision floating point 
-        /// number. Note: the endianness of this converter does not
-        /// affect the returned value.
+        ///     Converts the specified 32-bit signed integer to a single-precision floating point
+        ///     number. Note: the endianness of this converter does not
+        ///     affect the returned value.
         /// </summary>
         /// <param name="value">The number to convert. </param>
         /// <returns>A single-precision floating point number whose value is equivalent to value.</returns>
@@ -102,11 +156,13 @@ namespace SKBKontur.Catalogue.Objects.Bits
         {
             return new Int32SingleUnion(value).AsSingle;
         }
+
         #endregion
 
         #region To(PrimitiveType) conversions
+
         /// <summary>
-        /// Returns a Boolean value converted from one byte at a specified position in a byte array.
+        ///     Returns a Boolean value converted from one byte at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -118,7 +174,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a Unicode character converted from two bytes at a specified position in a byte array.
+        ///     Returns a Unicode character converted from two bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -129,8 +185,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a double-precision floating point number converted from eight bytes 
-        /// at a specified position in a byte array.
+        ///     Returns a double-precision floating point number converted from eight bytes
+        ///     at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -141,8 +197,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a single-precision floating point number converted from four bytes 
-        /// at a specified position in a byte array.
+        ///     Returns a single-precision floating point number converted from four bytes
+        ///     at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -153,7 +209,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 16-bit signed integer converted from two bytes at a specified position in a byte array.
+        ///     Returns a 16-bit signed integer converted from two bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -164,7 +220,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 32-bit signed integer converted from four bytes at a specified position in a byte array.
+        ///     Returns a 32-bit signed integer converted from four bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -175,7 +231,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 64-bit signed integer converted from eight bytes at a specified position in a byte array.
+        ///     Returns a 64-bit signed integer converted from eight bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -186,7 +242,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 16-bit unsigned integer converted from two bytes at a specified position in a byte array.
+        ///     Returns a 16-bit unsigned integer converted from two bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -197,7 +253,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 32-bit unsigned integer converted from four bytes at a specified position in a byte array.
+        ///     Returns a 32-bit unsigned integer converted from four bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -208,7 +264,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a 64-bit unsigned integer converted from eight bytes at a specified position in a byte array.
+        ///     Returns a 64-bit unsigned integer converted from eight bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -219,14 +275,14 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Checks the given argument for validity.
+        ///     Checks the given argument for validity.
         /// </summary>
         /// <param name="value">The byte array passed in</param>
         /// <param name="startIndex">The start index passed in</param>
         /// <param name="bytesRequired">The number of bytes required</param>
         /// <exception cref="ArgumentNullException">value is a null reference</exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// startIndex is less than zero or greater than the length of value minus bytesRequired.
+        ///     startIndex is less than zero or greater than the length of value minus bytesRequired.
         /// </exception>
         static void CheckByteArgument(byte[] value, int startIndex, int bytesRequired)
         {
@@ -241,8 +297,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Checks the arguments for validity before calling FromBytes
-        /// (which can therefore assume the arguments are valid).
+        ///     Checks the arguments for validity before calling FromBytes
+        ///     (which can therefore assume the arguments are valid).
         /// </summary>
         /// <param name="value">The bytes to convert after checking</param>
         /// <param name="startIndex">The index of the first byte to convert</param>
@@ -255,26 +311,28 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Convert the given number of bytes from the given array, from the given start
-        /// position, into a long, using the bytes as the least significant part of the long.
-        /// By the time this is called, the arguments have been checked for validity.
+        ///     Convert the given number of bytes from the given array, from the given start
+        ///     position, into a long, using the bytes as the least significant part of the long.
+        ///     By the time this is called, the arguments have been checked for validity.
         /// </summary>
         /// <param name="value">The bytes to convert</param>
         /// <param name="startIndex">The index of the first byte to convert</param>
         /// <param name="bytesToConvert">The number of bytes to use in the conversion</param>
         /// <returns>The converted number</returns>
         protected abstract long FromBytes(byte[] value, int startIndex, int bytesToConvert);
+
         #endregion
 
         #region ToString conversions
+
         /// <summary>
-        /// Returns a String converted from the elements of a byte array.
+        ///     Returns a String converted from the elements of a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <remarks>All the elements of value are converted.</remarks>
         /// <returns>
-        /// A String of hexadecimal pairs separated by hyphens, where each pair 
-        /// represents the corresponding element in value; for example, "7F-2C-4A".
+        ///     A String of hexadecimal pairs separated by hyphens, where each pair
+        ///     represents the corresponding element in value; for example, "7F-2C-4A".
         /// </returns>
         public static string ToString(byte[] value)
         {
@@ -282,14 +340,14 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a String converted from the elements of a byte array starting at a specified array position.
+        ///     Returns a String converted from the elements of a byte array starting at a specified array position.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
         /// <remarks>The elements from array position startIndex to the end of the array are converted.</remarks>
         /// <returns>
-        /// A String of hexadecimal pairs separated by hyphens, where each pair 
-        /// represents the corresponding element in value; for example, "7F-2C-4A".
+        ///     A String of hexadecimal pairs separated by hyphens, where each pair
+        ///     represents the corresponding element in value; for example, "7F-2C-4A".
         /// </returns>
         public static string ToString(byte[] value, int startIndex)
         {
@@ -297,26 +355,28 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns a String converted from a specified number of bytes at a specified position in a byte array.
+        ///     Returns a String converted from a specified number of bytes at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
         /// <param name="length">The number of bytes to convert.</param>
         /// <remarks>The length elements from array position startIndex are converted.</remarks>
         /// <returns>
-        /// A String of hexadecimal pairs separated by hyphens, where each pair 
-        /// represents the corresponding element in value; for example, "7F-2C-4A".
+        ///     A String of hexadecimal pairs separated by hyphens, where each pair
+        ///     represents the corresponding element in value; for example, "7F-2C-4A".
         /// </returns>
         public static string ToString(byte[] value, int startIndex, int length)
         {
             return BitConverter.ToString(value, startIndex, length);
         }
+
         #endregion
 
         #region	Decimal conversions
+
         /// <summary>
-        /// Returns a decimal value converted from sixteen bytes 
-        /// at a specified position in a byte array.
+        ///     Returns a decimal value converted from sixteen bytes
+        ///     at a specified position in a byte array.
         /// </summary>
         /// <param name="value">An array of bytes.</param>
         /// <param name="startIndex">The starting position within value.</param>
@@ -335,7 +395,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified decimal value as an array of bytes.
+        ///     Returns the specified decimal value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 16.</returns>
@@ -351,8 +411,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified decimal value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified decimal value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">A character to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -365,13 +425,15 @@ namespace SKBKontur.Catalogue.Objects.Bits
                 CopyBytesImpl(parts[i], 4, buffer, i * 4 + index);
             }
         }
+
         #endregion
 
         #region GetBytes conversions
+
         /// <summary>
-        /// Returns an array with the given number of bytes formed
-        /// from the least significant bytes of the specified value.
-        /// This is used to implement the other GetBytes methods.
+        ///     Returns an array with the given number of bytes formed
+        ///     from the least significant bytes of the specified value.
+        ///     This is used to implement the other GetBytes methods.
         /// </summary>
         /// <param name="value">The value to get bytes for</param>
         /// <param name="bytes">The number of significant bytes to return</param>
@@ -383,7 +445,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified Boolean value as an array of bytes.
+        ///     Returns the specified Boolean value as an array of bytes.
         /// </summary>
         /// <param name="value">A Boolean value.</param>
         /// <returns>An array of bytes with length 1.</returns>
@@ -393,7 +455,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified Unicode character value as an array of bytes.
+        ///     Returns the specified Unicode character value as an array of bytes.
         /// </summary>
         /// <param name="value">A character to convert.</param>
         /// <returns>An array of bytes with length 2.</returns>
@@ -403,7 +465,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified double-precision floating point value as an array of bytes.
+        ///     Returns the specified double-precision floating point value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 8.</returns>
@@ -413,7 +475,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 16-bit signed integer value as an array of bytes.
+        ///     Returns the specified 16-bit signed integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 2.</returns>
@@ -423,7 +485,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 32-bit signed integer value as an array of bytes.
+        ///     Returns the specified 32-bit signed integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 4.</returns>
@@ -433,7 +495,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 64-bit signed integer value as an array of bytes.
+        ///     Returns the specified 64-bit signed integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 8.</returns>
@@ -443,7 +505,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified single-precision floating point value as an array of bytes.
+        ///     Returns the specified single-precision floating point value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 4.</returns>
@@ -453,7 +515,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 16-bit unsigned integer value as an array of bytes.
+        ///     Returns the specified 16-bit unsigned integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 2.</returns>
@@ -463,7 +525,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 32-bit unsigned integer value as an array of bytes.
+        ///     Returns the specified 32-bit unsigned integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 4.</returns>
@@ -473,7 +535,7 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Returns the specified 64-bit unsigned integer value as an array of bytes.
+        ///     Returns the specified 64-bit unsigned integer value as an array of bytes.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <returns>An array of bytes with length 8.</returns>
@@ -485,11 +547,12 @@ namespace SKBKontur.Catalogue.Objects.Bits
         #endregion
 
         #region CopyBytes conversions
+
         /// <summary>
-        /// Copies the given number of bytes from the least-specific
-        /// end of the specified value into the specified byte array, beginning
-        /// at the specified index.
-        /// This is used to implement the other CopyBytes methods.
+        ///     Copies the given number of bytes from the least-specific
+        ///     end of the specified value into the specified byte array, beginning
+        ///     at the specified index.
+        ///     This is used to implement the other CopyBytes methods.
         /// </summary>
         /// <param name="value">The value to copy bytes for</param>
         /// <param name="bytes">The number of significant bytes to copy</param>
@@ -509,11 +572,11 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the given number of bytes from the least-specific
-        /// end of the specified value into the specified byte array, beginning
-        /// at the specified index.
-        /// This must be implemented in concrete derived classes, but the implementation
-        /// may assume that the value will fit into the buffer.
+        ///     Copies the given number of bytes from the least-specific
+        ///     end of the specified value into the specified byte array, beginning
+        ///     at the specified index.
+        ///     This must be implemented in concrete derived classes, but the implementation
+        ///     may assume that the value will fit into the buffer.
         /// </summary>
         /// <param name="value">The value to copy bytes for</param>
         /// <param name="bytes">The number of significant bytes to copy</param>
@@ -522,8 +585,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         protected abstract void CopyBytesImpl(long value, int bytes, byte[] buffer, int index);
 
         /// <summary>
-        /// Copies the specified Boolean value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified Boolean value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">A Boolean value.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -534,8 +597,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified Unicode character value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified Unicode character value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">A character to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -546,8 +609,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified double-precision floating point value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified double-precision floating point value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -558,8 +621,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 16-bit signed integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 16-bit signed integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -570,8 +633,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 32-bit signed integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 32-bit signed integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -582,8 +645,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 64-bit signed integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 64-bit signed integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -594,8 +657,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified single-precision floating point value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified single-precision floating point value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -606,8 +669,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 16-bit unsigned integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 16-bit unsigned integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -618,8 +681,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 32-bit unsigned integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 32-bit unsigned integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -630,8 +693,8 @@ namespace SKBKontur.Catalogue.Objects.Bits
         }
 
         /// <summary>
-        /// Copies the specified 64-bit unsigned integer value into the specified byte array,
-        /// beginning at the specified index.
+        ///     Copies the specified 64-bit unsigned integer value into the specified byte array,
+        ///     beginning at the specified index.
         /// </summary>
         /// <param name="value">The number to convert.</param>
         /// <param name="buffer">The byte array to copy the bytes into</param>
@@ -641,62 +704,6 @@ namespace SKBKontur.Catalogue.Objects.Bits
             CopyBytes(unchecked((long)value), 8, buffer, index);
         }
 
-        #endregion
-
-        #region Private struct used for Single/Int32 conversions
-        /// <summary>
-        /// Union used solely for the equivalent of DoubleToInt64Bits and vice versa.
-        /// </summary>
-        [StructLayout(LayoutKind.Explicit)]
-        struct Int32SingleUnion
-        {
-            /// <summary>
-            /// Int32 version of the value.
-            /// </summary>
-            [FieldOffset(0)]
-            int i;
-            /// <summary>
-            /// Single version of the value.
-            /// </summary>
-            [FieldOffset(0)]
-            float f;
-
-            /// <summary>
-            /// Creates an instance representing the given integer.
-            /// </summary>
-            /// <param name="i">The integer value of the new instance.</param>
-            internal Int32SingleUnion(int i)
-            {
-                this.f = 0; // Just to keep the compiler happy
-                this.i = i;
-            }
-
-            /// <summary>
-            /// Creates an instance representing the given floating point number.
-            /// </summary>
-            /// <param name="f">The floating point value of the new instance.</param>
-            internal Int32SingleUnion(float f)
-            {
-                this.i = 0; // Just to keep the compiler happy
-                this.f = f;
-            }
-
-            /// <summary>
-            /// Returns the value of the instance as an integer.
-            /// </summary>
-            internal int AsInt32
-            {
-                get { return i; }
-            }
-
-            /// <summary>
-            /// Returns the value of the instance as a floating point number.
-            /// </summary>
-            internal float AsSingle
-            {
-                get { return f; }
-            }
-        }
         #endregion
     }
 }

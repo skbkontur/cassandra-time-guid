@@ -30,14 +30,14 @@ namespace SKBKontur.Catalogue.Objects.Json
         [NotNull]
         public static T FromJson<T>([NotNull] this Stream serialized)
         {
-            using(var streamReader = new StreamReader(serialized, Encoding.UTF8))
+            using (var streamReader = new StreamReader(serialized, Encoding.UTF8))
                 return streamReader.ReadToEnd().FromJson<T>();
         }
 
         [NotNull]
         public static T FromJson<T>([NotNull] this byte[] serialized)
         {
-            using(var ms = new MemoryStream(serialized))
+            using (var ms = new MemoryStream(serialized))
                 return FromJson<T>(ms);
         }
     }

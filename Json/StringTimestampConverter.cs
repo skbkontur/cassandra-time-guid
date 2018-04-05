@@ -8,7 +8,7 @@ namespace SKBKontur.Catalogue.Objects.Json
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if(value == null)
+            if (value == null)
                 writer.WriteNull();
             else
                 writer.WriteValue(((Timestamp)value).ToDateTime());
@@ -16,9 +16,9 @@ namespace SKBKontur.Catalogue.Objects.Json
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if(reader.TokenType == JsonToken.Null)
+            if (reader.TokenType == JsonToken.Null)
                 return null;
-            if(reader.TokenType == JsonToken.Date)
+            if (reader.TokenType == JsonToken.Date)
                 return new Timestamp((DateTime)reader.Value);
             throw new JsonSerializationException(string.Format("Unexpected token when parsing timestamp. Expected Date, got {0}", reader.TokenType));
         }

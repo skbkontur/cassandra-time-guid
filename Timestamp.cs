@@ -31,7 +31,7 @@ namespace SKBKontur.Catalogue.Objects
 
         public Timestamp(long ticks)
         {
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+            if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
                 throw new ArgumentOutOfRangeException("ticks", string.Format("Ticks {0} is not in range [{1}, {2}]", ticks, DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks));
             Ticks = ticks;
         }
@@ -58,20 +58,20 @@ namespace SKBKontur.Catalogue.Objects
 
         public bool Equals([CanBeNull] Timestamp other)
         {
-            if(ReferenceEquals(null, other))
+            if (ReferenceEquals(null, other))
                 return false;
-            if(ReferenceEquals(this, other))
+            if (ReferenceEquals(this, other))
                 return true;
             return Ticks == other.Ticks;
         }
 
         public override bool Equals([CanBeNull] object obj)
         {
-            if(ReferenceEquals(null, obj))
+            if (ReferenceEquals(null, obj))
                 return false;
-            if(ReferenceEquals(this, obj))
+            if (ReferenceEquals(this, obj))
                 return true;
-            if(obj.GetType() != GetType())
+            if (obj.GetType() != GetType())
                 return false;
             return Equals((Timestamp)obj);
         }

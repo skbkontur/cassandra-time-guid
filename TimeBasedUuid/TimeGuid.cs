@@ -17,7 +17,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public TimeGuid([NotNull] byte[] bytes)
         {
-            if(TimeGuidBitsLayout.GetVersion(bytes) != GuidVersion.TimeBased)
+            if (TimeGuidBitsLayout.GetVersion(bytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
             this.bytes = bytes;
         }
@@ -25,7 +25,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public TimeGuid(Guid guid)
         {
             var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
-            if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
+            if (TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
             bytes = timeGuidBytes;
         }
@@ -34,7 +34,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public static TimeGuid Parse([CanBeNull] string str)
         {
             TimeGuid timeGuid;
-            if(!TryParse(str, out timeGuid))
+            if (!TryParse(str, out timeGuid))
                 throw new InvalidProgramStateException(string.Format("Cannot parse TimeGuid from: {0}", str));
             return timeGuid;
         }
@@ -43,10 +43,10 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
             result = null;
             Guid guid;
-            if(!Guid.TryParse(str, out guid))
+            if (!Guid.TryParse(str, out guid))
                 return false;
             var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
-            if(TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
+            if (TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
                 return false;
             result = new TimeGuid(timeGuidBytes);
             return true;
@@ -87,18 +87,18 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 
         public bool Equals([CanBeNull] TimeGuid other)
         {
-            if(ReferenceEquals(null, other))
+            if (ReferenceEquals(null, other))
                 return false;
-            if(ReferenceEquals(this, other))
+            if (ReferenceEquals(this, other))
                 return true;
             return ByteArrayComparer.Instance.Equals(bytes, other.bytes);
         }
 
         public override bool Equals([CanBeNull] object other)
         {
-            if(ReferenceEquals(null, other))
+            if (ReferenceEquals(null, other))
                 return false;
-            if(ReferenceEquals(this, other))
+            if (ReferenceEquals(this, other))
                 return true;
             return other is TimeGuid && Equals((TimeGuid)other);
         }
@@ -114,22 +114,22 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         /// </remarks>
         public int CompareTo([CanBeNull] TimeGuid other)
         {
-            if(other == null)
+            if (other == null)
                 return 1;
             var result = GetTimestamp().CompareTo(other.GetTimestamp());
-            if(result != 0)
+            if (result != 0)
                 return result;
             result = GetClockSequence().CompareTo(other.GetClockSequence());
-            if(result != 0)
+            if (result != 0)
                 return result;
             var node = GetNode();
             var otherNode = other.GetNode();
-            if(node.Length != otherNode.Length)
+            if (node.Length != otherNode.Length)
                 throw new InvalidProgramStateException(string.Format("Node lengths are different for: {0} and {1}", this, other));
-            for(var i = 0; i < node.Length; i++)
+            for (var i = 0; i < node.Length; i++)
             {
                 result = node[i].CompareTo(otherNode[i]);
-                if(result != 0)
+                if (result != 0)
                     return result;
             }
             return 0;
@@ -203,7 +203,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         [NotNull]
         private static byte[] ReorderGuidBytesInCassandraWay([NotNull] byte[] b)
         {
-            if(b.Length != BitHelper.TimeGuidSize)
+            if (b.Length != BitHelper.TimeGuidSize)
                 throw new InvalidProgramStateException("b must be 16 bytes long");
             return new[] {b[3], b[2], b[1], b[0], b[5], b[4], b[7], b[6], b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]};
         }

@@ -12,7 +12,7 @@ namespace SKBKontur.Catalogue.Objects
 
         private static readonly ThreadLocal<Random> threadLocalRandom = new ThreadLocal<Random>(() =>
             {
-                lock(globalRandom)
+                lock (globalRandom)
                     return new Random(globalRandom.Next());
             });
 
