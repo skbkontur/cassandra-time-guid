@@ -10,13 +10,13 @@ namespace SKBKontur.Catalogue.Objects.Json
     public static class JsonObjectExtensions
     {
         [NotNull]
-        public static string ToJson<T>([NotNull] this T o, [NotNull] params JsonConverter[] converters)
+        public static string ToJson<T>([CanBeNull] this T o, [NotNull] params JsonConverter[] converters)
         {
             return JsonConvert.SerializeObject(o, converters);
         }
 
         [NotNull]
-        public static string ToPrettyJson<T>([NotNull] this T o, [NotNull] params JsonConverter[] converters)
+        public static string ToPrettyJson<T>([CanBeNull] this T o, [NotNull] params JsonConverter[] converters)
         {
             return JsonConvert.SerializeObject(o, Formatting.Indented, converters);
         }
