@@ -32,14 +32,14 @@ namespace SKBKontur.Catalogue.Objects
         public Timestamp(long ticks)
         {
             if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                throw new ArgumentOutOfRangeException("ticks", string.Format("Ticks {0} is not in range [{1}, {2}]", ticks, DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks));
+                throw new ArgumentOutOfRangeException(nameof(ticks), $"Ticks {ticks} is not in range [{DateTime.MinValue.Ticks}, {DateTime.MaxValue.Ticks}]");
             Ticks = ticks;
         }
 
         [NotNull]
-        public static Timestamp Now { get { return new Timestamp(PreciseTimestampGeneratorInstance.NowTicks()); } }
+        public static Timestamp Now => new Timestamp(PreciseTimestampGeneratorInstance.NowTicks());
 
-        public long Ticks { get; private set; }
+        public long Ticks { get; }
 
         public DateTime ToDateTime()
         {
@@ -53,7 +53,7 @@ namespace SKBKontur.Catalogue.Objects
 
         public override string ToString()
         {
-            return string.Format("Ticks: {0}, DateTime: {1}", Ticks, ToDateTime().ToString("O"));
+            return $"Ticks: {Ticks}, DateTime: {ToDateTime():O}";
         }
 
         public bool Equals([CanBeNull] Timestamp other)

@@ -10,7 +10,7 @@ namespace SKBKontur.Catalogue.Objects
         public static Timestamp Floor([NotNull] this Timestamp timestamp, TimeSpan precision)
         {
             if (precision.Ticks <= 0)
-                throw new InvalidProgramStateException(string.Format("Could not run Floor with {0} precision", precision));
+                throw new InvalidProgramStateException($"Could not run Floor with {precision} precision");
             return new Timestamp((timestamp.Ticks / precision.Ticks) * precision.Ticks);
         }
     }
