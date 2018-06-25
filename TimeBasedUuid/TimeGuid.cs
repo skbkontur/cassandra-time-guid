@@ -30,6 +30,12 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             bytes = timeGuidBytes;
         }
 
+        public static bool IsTimeGuid(Guid guid)
+        {
+            var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
+            return TimeGuidBitsLayout.GetVersion(timeGuidBytes) == GuidVersion.TimeBased;
+        }
+
         [NotNull]
         public static TimeGuid Parse([CanBeNull] string str)
         {
