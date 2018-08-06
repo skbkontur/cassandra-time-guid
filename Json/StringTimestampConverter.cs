@@ -16,11 +16,16 @@ namespace SKBKontur.Catalogue.Objects.Json
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (reader.TokenType == JsonToken.Null)
+            switch (reader.TokenType)
+            {
+            case JsonToken.Null:
                 return null;
-            if (reader.TokenType == JsonToken.Date)
+            case JsonToken.Date:
                 return new Timestamp((DateTime)reader.Value);
-            throw new JsonSerializationException(string.Format("Unexpected token when parsing timestamp. Expected Date, got {0}", reader.TokenType));
+            case JsonToken.Integer:
+                return new Timestamp((long)reader.Value);
+            }
+            throw new JsonSerializationException($"Unexpected token when parsing timestamp. Expected Date or Integer with value type long, got {reader.TokenType}");
         }
 
         public override bool CanConvert(Type objectType)
