@@ -4,10 +4,14 @@ using System.Linq;
 
 using JetBrains.Annotations;
 
+using Newtonsoft.Json;
+
 using SKBKontur.Catalogue.Objects.Bits;
+using SKBKontur.Catalogue.Objects.Json;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
+    [JsonConverter(typeof(TimeGuidConverter))]
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
