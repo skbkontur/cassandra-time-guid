@@ -10,6 +10,12 @@ namespace SKBKontur.Catalogue.Objects.Json
     public static class JsonObjectExtensions
     {
         [NotNull]
+        public static string ToJson<T>([CanBeNull] this T o, [NotNull] JsonSerializerSettings settings)
+        {
+            return JsonConvert.SerializeObject(o, settings);
+        }
+
+        [NotNull]
         public static string ToJson<T>([CanBeNull] this T o, [NotNull] params JsonConverter[] converters)
         {
             return JsonConvert.SerializeObject(o, converters);
@@ -25,6 +31,12 @@ namespace SKBKontur.Catalogue.Objects.Json
         public static T FromJson<T>([NotNull] this string serialized)
         {
             return JsonConvert.DeserializeObject<T>(serialized);
+        }
+
+        [NotNull]
+        public static T FromJson<T>([NotNull] this string serialized, [NotNull] JsonSerializerSettings settings)
+        {
+            return JsonConvert.DeserializeObject<T>(serialized, settings);
         }
 
         [NotNull]
