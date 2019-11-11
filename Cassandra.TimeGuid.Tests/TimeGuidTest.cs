@@ -238,7 +238,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void CompareTo_ByTimestamp_SequentialTimestamps()
         {
             TimeGuid lastGuid = null;
@@ -257,7 +256,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void CompareTo_ByTimestamp_AllDistinctTimestamps()
         {
             foreach (var timestamp1 in TimeGuidBitsLayoutTest.AllDistinctTimestamps(TimeSpan.FromDays(10000)))
@@ -294,7 +292,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void CompareTo_ByClockSequence_AllDistinctValues()
         {
             var node = new byte[6];
@@ -346,7 +343,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void StrongOrdering_ByTimestampNow()
         {
             var lastGuid = TimeGuid.MinValue;

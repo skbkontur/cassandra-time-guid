@@ -19,7 +19,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [TestCase(32)]
         [TestCase(64)]
         [TestCase(128)]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void Perf(int threadsCount)
         {
             const int totalIterationsCount = 64 * 1000 * 1000;
@@ -28,7 +28,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void Collisions()
         {
             const int count = 32 * 1000 * 1000;
@@ -48,7 +47,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
                 Assert.That(timeSeries[i] - timeSeries[i - 1], Is.GreaterThanOrEqualTo(10));
         }
 
-        [Category("Functional")]
         [TestCaseSource(nameof(sleepDurations))]
         public void EnsureWallTimeLikehood(TimeSpan sleepDuration, int iterations)
         {
@@ -63,7 +61,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             AssertThatDurationIsEqualTo(actualDurations, sleepDuration);
         }
 
-        [Category("Functional")]
         [TestCaseSource(nameof(sleepDurations))]
         public void EnsureStopwatchAndWallTimeLikehood(TimeSpan sleepDuration, int iterations)
         {
@@ -80,7 +77,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             AssertThatDurationIsEqualTo(actualDurations, sleepDuration);
         }
 
-        [Category("Functional")]
         [TestCaseSource(nameof(sleepDurations))]
         public void GetDateTimeTicks(TimeSpan sleepDuration, int iterations)
         {
@@ -110,7 +106,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         {
             //var epsilon = TeamCityEnvironment.IsExecutionViaTeamCity ? TimeSpan.FromMilliseconds(20) : TimeSpan.FromMilliseconds(1);
             //var errorTolerance = TeamCityEnvironment.IsExecutionViaTeamCity ? actualDurations.Length / 5 : 0; // на тимсити допускаем 20% ошибок
-            var epsilon = TimeSpan.FromMilliseconds(1);
+            var epsilon = TimeSpan.FromMilliseconds(10);
             var errorTolerance = 0;
             Array.Sort(actualDurations);
             Assert.That(actualDurations[0 + errorTolerance], Is.GreaterThan(expectedDuration.Subtract(epsilon)));

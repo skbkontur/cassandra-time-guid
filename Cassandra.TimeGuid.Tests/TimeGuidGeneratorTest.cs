@@ -22,7 +22,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [TestCase(32)]
         [TestCase(64)]
         [TestCase(128)]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void Perf(int threadsCount)
         {
             const int totalIterationsCount = 64 * 1000 * 1000;
@@ -31,7 +31,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
         public void Collisions()
         {
             var guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
@@ -41,7 +40,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
         public void Collisions_MultiProc()
         {
             const int count = 1000 * 1000;
@@ -105,7 +103,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void RngTestPerf()
         {
             DoRngPerfTest("GenerateRandomNode()", GenerateRandomNode);

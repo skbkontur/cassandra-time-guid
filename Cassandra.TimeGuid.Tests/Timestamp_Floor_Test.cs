@@ -11,9 +11,9 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [Test]
         public void TestFloor_Exception()
         {
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.MinValue), Throws.InstanceOf<InvalidOperationException>().With.Message.Matches("Could not run Floor with -.* precision"));
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.Zero), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Could not run Floor with 00:00:00 precision"));
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.FromSeconds(-1)), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Could not run Floor with -00:00:01 precision"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.MinValue), Throws.InstanceOf<InvalidOperationException>().With.Message.Matches("Invalid precision: -.*"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.Zero), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Invalid precision: 00:00:00"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.FromSeconds(-1)), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Invalid precision: -00:00:01"));
         }
 
         [Test]

@@ -45,7 +45,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void GetVersion_AllDistinctTimestamps()
         {
             var node = RandomNode();
@@ -84,7 +83,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Functional")]
         public void GetTimestamp_AllDistinctTimestamps()
         {
             var node = RandomNode();
@@ -155,7 +153,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void Perf()
         {
             var timestamp = new Timestamp(tsGenerator.NowTicks());
@@ -170,7 +168,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void ExploreBitArithmetic()
         {
             Func<string, string> formatBitsString = s =>

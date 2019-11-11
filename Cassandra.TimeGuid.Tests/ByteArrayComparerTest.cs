@@ -117,7 +117,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
-        [Category("Manual")]
+        [Category("LongRunning")]
         public void Compare_Perf()
         {
             const int itersCount = 20000;
