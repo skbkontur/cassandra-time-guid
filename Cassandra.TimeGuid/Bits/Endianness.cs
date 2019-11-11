@@ -6,7 +6,7 @@
 
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid.Bits
+namespace SkbKontur.Cassandra.TimeBasedUuid.Bits
 {
     /// <summary>
     ///     Endianness of a converter

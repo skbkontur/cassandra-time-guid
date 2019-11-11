@@ -4,7 +4,7 @@ using System.Threading;
 
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid
+namespace SkbKontur.Cassandra.TimeBasedUuid
 {
     [PublicAPI]
     public class PreciseTimestampGenerator

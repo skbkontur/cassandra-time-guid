@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid.Bits
+namespace SkbKontur.Cassandra.TimeBasedUuid.Bits
 {
     /// <summary>
     ///     Equivalent of System.BitConverter, but with either endianness.

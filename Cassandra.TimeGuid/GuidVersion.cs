@@ -1,6 +1,6 @@
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid
+namespace SkbKontur.Cassandra.TimeBasedUuid
 {
     [PublicAPI]
     public enum GuidVersion

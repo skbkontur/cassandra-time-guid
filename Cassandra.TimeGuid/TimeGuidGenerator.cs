@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid
+namespace SkbKontur.Cassandra.TimeBasedUuid
 {
     internal class TimeGuidGenerator
     {

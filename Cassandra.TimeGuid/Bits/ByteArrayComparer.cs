@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid.Bits
+namespace SkbKontur.Cassandra.TimeBasedUuid.Bits
 {
     [PublicAPI]
     public class ByteArrayComparer : IEqualityComparer<byte[]>, IComparer<byte[]>

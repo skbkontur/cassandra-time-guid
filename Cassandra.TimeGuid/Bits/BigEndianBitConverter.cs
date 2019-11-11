@@ -6,7 +6,7 @@
 
 using JetBrains.Annotations;
 
-namespace SkbKontur.Cassandra.TimeGuid.Bits
+namespace SkbKontur.Cassandra.TimeBasedUuid.Bits
 {
     /// <summary>
     ///     Implementation of EndianBitConverter which converts to/from big-endian
