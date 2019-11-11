@@ -41,13 +41,13 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static byte[] Format([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
         {
             if (node.Length != NodeSize)
-                throw new InvalidOperationException(string.Format("node must be {0} bytes long", NodeSize));
+                throw new InvalidOperationException($"node must be {NodeSize} bytes long");
             if (timestamp < GregorianCalendarStart)
-                throw new InvalidOperationException(string.Format("timestamp must not be less than {0}", GregorianCalendarStart));
+                throw new InvalidOperationException($"timestamp must not be less than {GregorianCalendarStart}");
             if (timestamp > GregorianCalendarEnd)
-                throw new InvalidOperationException(string.Format("timestamp must not be greater than {0}", GregorianCalendarEnd));
+                throw new InvalidOperationException($"timestamp must not be greater than {GregorianCalendarEnd}");
             if (clockSequence > MaxClockSequence)
-                throw new InvalidOperationException(string.Format("clockSequence must not be greater than {0}", MaxClockSequence));
+                throw new InvalidOperationException($"clockSequence must not be greater than {MaxClockSequence}");
 
             var timestampTicks = (timestamp - GregorianCalendarStart).Ticks;
             var timestampBytes = EndianBitConverter.Little.GetBytes(timestampTicks);
@@ -84,7 +84,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static GuidVersion GetVersion([NotNull] byte[] bytes)
         {
             if (bytes.Length != TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
+                throw new InvalidOperationException($"bytes must be {TimeGuidSize} bytes long");
             return (GuidVersion)(bytes[versionOffset] >> versionByteShift);
         }
 
@@ -92,7 +92,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static Timestamp GetTimestamp([NotNull] byte[] bytes)
         {
             if (bytes.Length != TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
+                throw new InvalidOperationException($"bytes must be {TimeGuidSize} bytes long");
 
             var timestampBytes = new byte[sizeof(long)];
             timestampBytes[0] = bytes[3];
@@ -114,7 +114,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static ushort GetClockSequence([NotNull] byte[] bytes)
         {
             if (bytes.Length != TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
+                throw new InvalidOperationException($"bytes must be {TimeGuidSize} bytes long");
             var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
             var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
             return EndianBitConverter.Big.ToUInt16(new[] {clockSequenceHighByte, clockSequenceLowByte}, 0);
@@ -124,7 +124,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static byte[] GetNode([NotNull] byte[] bytes)
         {
             if (bytes.Length != TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
+                throw new InvalidOperationException($"bytes must be {TimeGuidSize} bytes long");
             var node = new byte[NodeSize];
             for (var i = 0; i < NodeSize; i++)
                 node[i] = (byte)(bytes[nodeOffset + i] ^ signBitMask);
@@ -135,7 +135,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static byte[] IncrementNode([NotNull] byte[] nodeBytes)
         {
             if (nodeBytes.Length != NodeSize)
-                throw new InvalidOperationException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
+                throw new InvalidOperationException($"nodeBytes must be {NodeSize} bytes long");
             var carry = true;
             var node = new byte[NodeSize];
             for (var i = NodeSize - 1; i >= 0; i--)
@@ -161,7 +161,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public static byte[] DecrementNode([NotNull] byte[] nodeBytes)
         {
             if (nodeBytes.Length != NodeSize)
-                throw new InvalidOperationException(string.Format("nodeBytes must be {0} bytes long", NodeSize));
+                throw new InvalidOperationException($"nodeBytes must be {NodeSize} bytes long");
             var carry = true;
             var node = new byte[NodeSize];
             for (var i = NodeSize - 1; i >= 0; i--)

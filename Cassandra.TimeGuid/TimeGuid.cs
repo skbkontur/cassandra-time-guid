@@ -19,7 +19,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         public TimeGuid([NotNull] byte[] bytes)
         {
             if (TimeGuidBitsLayout.GetVersion(bytes) != GuidVersion.TimeBased)
-                throw new InvalidOperationException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
+                throw new InvalidOperationException($"Invalid v1 guid: [{string.Join(", ", bytes.Select(x => x.ToString("x2")))}]");
             this.bytes = bytes;
         }
 
@@ -27,7 +27,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         {
             var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
             if (TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
-                throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
+                throw new InvalidOperationException($"Invalid v1 guid: {guid}");
             bytes = timeGuidBytes;
         }
 
@@ -40,17 +40,15 @@ namespace SkbKontur.Cassandra.TimeGuid
         [NotNull]
         public static TimeGuid Parse([CanBeNull] string str)
         {
-            TimeGuid timeGuid;
-            if (!TryParse(str, out timeGuid))
-                throw new InvalidOperationException(string.Format("Cannot parse TimeGuid from: {0}", str));
+            if (!TryParse(str, out var timeGuid))
+                throw new InvalidOperationException($"Cannot parse TimeGuid from: {str}");
             return timeGuid;
         }
 
         public static bool TryParse([CanBeNull] string str, out TimeGuid result)
         {
             result = null;
-            Guid guid;
-            if (!Guid.TryParse(str, out guid))
+            if (!Guid.TryParse(str, out var guid))
                 return false;
             var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
             if (TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
@@ -89,7 +87,7 @@ namespace SkbKontur.Cassandra.TimeGuid
 
         public override string ToString()
         {
-            return string.Format("Guid: {0}, Timestamp: {1}, ClockSequence: {2}", ToGuid(), GetTimestamp(), GetClockSequence());
+            return $"Guid: {ToGuid()}, Timestamp: {GetTimestamp()}, ClockSequence: {GetClockSequence()}";
         }
 
         public bool Equals([CanBeNull] TimeGuid other)
@@ -107,7 +105,7 @@ namespace SkbKontur.Cassandra.TimeGuid
                 return false;
             if (ReferenceEquals(this, other))
                 return true;
-            return other is TimeGuid && Equals((TimeGuid)other);
+            return other is TimeGuid timeGuid && Equals(timeGuid);
         }
 
         public override int GetHashCode()
@@ -132,7 +130,7 @@ namespace SkbKontur.Cassandra.TimeGuid
             var node = GetNode();
             var otherNode = other.GetNode();
             if (node.Length != otherNode.Length)
-                throw new InvalidOperationException(string.Format("Node lengths are different for: {0} and {1}", this, other));
+                throw new InvalidOperationException($"Node lengths are different for: {this} and {other}");
             for (var i = 0; i < node.Length; i++)
             {
                 result = node[i].CompareTo(otherNode[i]);
