@@ -1,15 +1,12 @@
-﻿using System;
+using System;
 
 using NUnit.Framework;
-
-using SKBKontur.Catalogue.Objects;
-using SKBKontur.Catalogue.Objects.Json;
 
 #pragma warning disable 1718
 // ReSharper disable UnusedVariable
 // ReSharper disable EqualExpressionComparison
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class TimestampTest
@@ -175,25 +172,10 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests
             Assert.That(ts1 - negativeTimeSpan, Is.EqualTo(new Timestamp(ts1.ToDateTime() - negativeTimeSpan)));
         }
 
-        [Test]
-        public void Serialization_Json()
-        {
-            var now = Timestamp.Now;
-            Assert.That(new TestDto {Timestamp = now}.ToJson().FromJson<TestDto>().Timestamp, Is.EqualTo(now));
-            Assert.That(new TestDto {Timestamp = Timestamp.MinValue}.ToJson().FromJson<TestDto>().Timestamp, Is.EqualTo(Timestamp.MinValue));
-            Assert.That(new TestDto {Timestamp = Timestamp.MaxValue}.ToJson().FromJson<TestDto>().Timestamp, Is.EqualTo(Timestamp.MaxValue));
-            Assert.That(new TestDto {Timestamp = null}.ToJson().FromJson<TestDto>().Timestamp, Is.Null);
-        }
-
         private Timestamp ts1;
         private Timestamp ts2;
         private Timestamp tsLess;
         private Timestamp tsGreater;
-
-        private class TestDto
-        {
-            public Timestamp Timestamp { get; set; }
-        }
     }
 }
 

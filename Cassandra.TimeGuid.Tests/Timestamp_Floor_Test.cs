@@ -1,21 +1,19 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects;
-
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
-    public class TimestampExtensionsTest
+    public class Timestamp_Floor_Test
     {
         [Test]
         public void TestFloor_Exception()
         {
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.MinValue), Throws.InstanceOf<InvalidProgramStateException>().With.Message.Matches("Could not run Floor with -.* precision"));
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.Zero), Throws.InstanceOf<InvalidProgramStateException>().With.Message.EqualTo("Could not run Floor with 00:00:00 precision"));
-            Assert.That(() => Timestamp.Now.Floor(TimeSpan.FromSeconds(-1)), Throws.InstanceOf<InvalidProgramStateException>().With.Message.EqualTo("Could not run Floor with -00:00:01 precision"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.MinValue), Throws.InstanceOf<InvalidOperationException>().With.Message.Matches("Could not run Floor with -.* precision"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.Zero), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Could not run Floor with 00:00:00 precision"));
+            Assert.That(() => Timestamp.Now.Floor(TimeSpan.FromSeconds(-1)), Throws.InstanceOf<InvalidOperationException>().With.Message.EqualTo("Could not run Floor with -00:00:01 precision"));
         }
 
         [Test]
@@ -92,7 +90,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests
         private static Timestamp Parse(string str)
         {
             if (!DateTime.TryParse(str, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AssumeUniversal, out var result))
-                throw new InvalidProgramStateException($"String {str} has not been recognized as correct DateTime representation");
+                throw new InvalidOperationException($"String {str} has not been recognized as correct DateTime representation");
             return new Timestamp(result);
         }
     }

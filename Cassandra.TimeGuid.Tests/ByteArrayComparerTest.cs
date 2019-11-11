@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects.Bits;
+using SkbKontur.Cassandra.TimeBasedUuid.Bits;
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.BitsTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class ByteArrayComparerTest
@@ -133,7 +133,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.BitsTests
                     s += comparer.Compare(samples[i], samples[j]);
             }
             stopwatch.Stop();
-            Console.Out.WriteLine("elapsed {0} millis, {1}", stopwatch.ElapsedMilliseconds, s);
+            Console.Out.WriteLine($"elapsed {stopwatch.ElapsedMilliseconds} millis, {s}");
         }
 
         private static List<byte[]> GenerateRandomByteArrays()

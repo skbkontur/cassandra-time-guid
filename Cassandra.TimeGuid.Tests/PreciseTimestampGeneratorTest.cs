@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,10 +6,7 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
-using SKBKontur.Catalogue.TeamCity;
-
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class PreciseTimestampGeneratorTest
@@ -111,8 +108,10 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
 
         private static void AssertThatDurationIsEqualTo(TimeSpan[] actualDurations, TimeSpan expectedDuration)
         {
-            var epsilon = TeamCityEnvironment.IsExecutionViaTeamCity ? TimeSpan.FromMilliseconds(20) : TimeSpan.FromMilliseconds(1);
-            var errorTolerance = TeamCityEnvironment.IsExecutionViaTeamCity ? actualDurations.Length / 5 : 0; // на тимсити допускаем 20% ошибок
+            //var epsilon = TeamCityEnvironment.IsExecutionViaTeamCity ? TimeSpan.FromMilliseconds(20) : TimeSpan.FromMilliseconds(1);
+            //var errorTolerance = TeamCityEnvironment.IsExecutionViaTeamCity ? actualDurations.Length / 5 : 0; // на тимсити допускаем 20% ошибок
+            var epsilon = TimeSpan.FromMilliseconds(1);
+            var errorTolerance = 0;
             Array.Sort(actualDurations);
             Assert.That(actualDurations[0 + errorTolerance], Is.GreaterThan(expectedDuration.Subtract(epsilon)));
             Assert.That(actualDurations[actualDurations.Length - 1 - errorTolerance], Is.LessThan(expectedDuration.Add(epsilon)));

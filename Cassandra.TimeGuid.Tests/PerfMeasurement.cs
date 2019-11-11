@@ -5,7 +5,7 @@ using System.Threading;
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     public static class PerfMeasurement
     {
@@ -31,7 +31,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             startSignal.Set();
             threads.ForEach(thread => thread.Join());
             sw.Stop();
-            Console.Out.WriteLine("{0} took {1} ms to make {2} iterations in {3} threads", actionName, sw.ElapsedMilliseconds, totalIterationsCount, threadsCount);
+            Console.Out.WriteLine($"{actionName} took {sw.ElapsedMilliseconds} ms to make {totalIterationsCount} iterations in {threadsCount} threads");
         }
     }
 }

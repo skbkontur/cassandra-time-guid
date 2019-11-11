@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,11 +7,9 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects;
-using SKBKontur.Catalogue.Objects.Bits;
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
+using SkbKontur.Cassandra.TimeBasedUuid.Bits;
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class TimeGuidGeneratorTest
@@ -83,8 +81,8 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         public void GenerateByTimestamp_InvalidTimestamp()
         {
             var guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
-            Assert.Throws<InvalidProgramStateException>(() => guidGen.NewGuid(Timestamp.MinValue));
-            Assert.Throws<InvalidProgramStateException>(() => guidGen.NewGuid(Timestamp.MaxValue));
+            Assert.Throws<InvalidOperationException>(() => guidGen.NewGuid(Timestamp.MinValue));
+            Assert.Throws<InvalidOperationException>(() => guidGen.NewGuid(Timestamp.MaxValue));
         }
 
         [Test]
@@ -92,7 +90,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         {
             var guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
             var ts = Timestamp.Now;
-            var clockSequence = new Random().NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
+            var clockSequence = TimeGuidGenerator.GenerateRandomClockSequence();
             var guid = guidGen.NewGuid(ts, clockSequence);
             Assert.That(TimeGuidBitsLayout.GetTimestamp(guid), Is.EqualTo(ts));
             Assert.That(TimeGuidBitsLayout.GetClockSequence(guid), Is.EqualTo(clockSequence));
@@ -102,8 +100,8 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         public void GenerateByTimestampAndClockSequence_InvalidClockSequence()
         {
             var guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
-            Assert.Throws<InvalidProgramStateException>(() => guidGen.NewGuid(Timestamp.Now, ushort.MaxValue));
-            Assert.Throws<InvalidProgramStateException>(() => guidGen.NewGuid(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence + 1));
+            Assert.Throws<InvalidOperationException>(() => guidGen.NewGuid(Timestamp.Now, ushort.MaxValue));
+            Assert.Throws<InvalidOperationException>(() => guidGen.NewGuid(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence + 1));
         }
 
         [Test]
@@ -114,20 +112,19 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             DoRngPerfTest("GenerateRandomNodeCrypto()", GenerateRandomNodeCrypto);
         }
 
-        private static void DoRngPerfTest(string actionName, Func<byte[]> generateRnadomNode)
+        private static void DoRngPerfTest(string actionName, Func<byte[]> generateRandomNode)
         {
             var bytesGenerated = 0L;
             var sw = Stopwatch.StartNew();
             for (var i = 0; i < 1 * 1000 * 1000; i++)
-                bytesGenerated += generateRnadomNode().Length;
+                bytesGenerated += generateRandomNode().Length;
             sw.Stop();
-            Console.Out.WriteLine("{0} took {1} ms to generate {2} bytes", actionName, sw.ElapsedMilliseconds, bytesGenerated);
+            Console.Out.WriteLine($"{actionName} took {sw.ElapsedMilliseconds} ms to generate {bytesGenerated} bytes");
         }
 
-        private byte[] GenerateRandomNode()
+        private static byte[] GenerateRandomNode()
         {
-            lock (rng)
-                return rng.NextBytes(6);
+            return TimeGuidGenerator.GenerateRandomNode();
         }
 
         private byte[] GenerateRandomNodeCrypto()
@@ -137,7 +134,6 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             return bytes;
         }
 
-        private readonly Random rng = new Random(Guid.NewGuid().GetHashCode());
         private readonly RNGCryptoServiceProvider cryptoRng = new RNGCryptoServiceProvider();
     }
 }

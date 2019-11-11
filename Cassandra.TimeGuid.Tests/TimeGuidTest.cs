@@ -1,19 +1,14 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-using GroBuf;
-using GroBuf.DataMembersExtracters;
-
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects;
-using SKBKontur.Catalogue.Objects.Bits;
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
+using SkbKontur.Cassandra.TimeBasedUuid.Bits;
 
 #pragma warning disable 1718
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     [SuppressMessage("ReSharper", "EqualExpressionComparison")]
@@ -84,22 +79,20 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [SuppressMessage("ReSharper", "ObjectCreationAsStatement")]
         public void InvalidV1Guid()
         {
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(Guid.NewGuid()));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(Guid.Empty));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(GuidHelpers.MinGuid));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(GuidHelpers.MaxGuid));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(new byte[0]));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(TimeGuid.NowGuid().ToByteArray().Take(15).ToArray()));
-            Assert.Throws<InvalidProgramStateException>(() => new TimeGuid(TimeGuid.NowGuid().ToByteArray().Concat(new byte[] {0xff}).ToArray()));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(Guid.NewGuid()));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(minGuid));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(maxGuid));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(new byte[0]));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(TimeGuid.NowGuid().ToByteArray().Take(15).ToArray()));
+            Assert.Throws<InvalidOperationException>(() => new TimeGuid(TimeGuid.NowGuid().ToByteArray().Concat(new byte[] {0xff}).ToArray()));
         }
 
         [Test]
         public void IsTimeGuid()
         {
             Assert.That(TimeGuid.IsTimeGuid(Guid.NewGuid()), Is.False);
-            Assert.That(TimeGuid.IsTimeGuid(Guid.Empty), Is.False);
-            Assert.That(TimeGuid.IsTimeGuid(GuidHelpers.MinGuid), Is.False);
-            Assert.That(TimeGuid.IsTimeGuid(GuidHelpers.MaxGuid), Is.False);
+            Assert.That(TimeGuid.IsTimeGuid(minGuid), Is.False);
+            Assert.That(TimeGuid.IsTimeGuid(maxGuid), Is.False);
 
             Assert.That(TimeGuid.IsTimeGuid(TimeGuid.NowGuid().ToGuid()), Is.True);
             Assert.That(TimeGuid.IsTimeGuid(TimeGuid.MinValue.ToGuid()), Is.True);
@@ -136,15 +129,15 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [Test]
         public void GetClockSequence()
         {
-            var clockSequence = GetRandomClockSequence();
+            var clockSequence = TimeGuidGenerator.GenerateRandomClockSequence();
             Assert.That(TimeGuid.NewGuid(Timestamp.Now, clockSequence).GetClockSequence(), Is.EqualTo(clockSequence));
         }
 
         [Test]
         public void GetNode()
         {
-            var node = rng.NextBytes(6);
-            Assert.That(new TimeGuid(Timestamp.Now, GetRandomClockSequence(), node).GetNode(), Is.EqualTo(node));
+            var node = TimeGuidGenerator.GenerateRandomNode();
+            Assert.That(new TimeGuid(Timestamp.Now, TimeGuidGenerator.GenerateRandomClockSequence(), node).GetNode(), Is.EqualTo(node));
         }
 
         [Test]
@@ -237,7 +230,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         {
             var timestamp1 = Timestamp.Now;
             var timestamp2 = timestamp1.AddTicks(1);
-            var clockSequence = GetRandomClockSequence();
+            var clockSequence = TimeGuidGenerator.GenerateRandomClockSequence();
             var timeGuid1 = new TimeGuid(timestamp1, clockSequence, new byte[6]);
             var timeGuid2 = new TimeGuid(timestamp2, clockSequence, new byte[6]);
             Assert.That(timeGuid2.CompareTo(timeGuid1), Is.Positive);
@@ -251,15 +244,15 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             TimeGuid lastGuid = null;
             foreach (var timestamp in TimeGuidBitsLayoutTest.AllDistinctTimestamps(TimeSpan.FromHours(10)))
             {
-                var nextwGuid = TimeGuid.NewGuid(timestamp);
-                Assert.That(lastGuid < nextwGuid);
-                Assert.That(nextwGuid > lastGuid);
+                var nextGuid = TimeGuid.NewGuid(timestamp);
+                Assert.That(lastGuid < nextGuid);
+                Assert.That(nextGuid > lastGuid);
                 if (lastGuid != null)
                 {
-                    Assert.That(nextwGuid, Is.GreaterThan(lastGuid));
-                    Assert.That(nextwGuid.GetTimestamp(), Is.GreaterThan(lastGuid.GetTimestamp()));
+                    Assert.That(nextGuid, Is.GreaterThan(lastGuid));
+                    Assert.That(nextGuid.GetTimestamp(), Is.GreaterThan(lastGuid.GetTimestamp()));
                 }
-                lastGuid = nextwGuid;
+                lastGuid = nextGuid;
             }
         }
 
@@ -276,7 +269,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
                     var timeGuid1 = TimeGuid.NewGuid(timestamp1);
                     var timeGuid2 = TimeGuid.NewGuid(timestamp2);
                     var expectedResult = timestamp1.CompareTo(timestamp2);
-                    Assert.That(timeGuid1.CompareTo(timeGuid2), Is.EqualTo(expectedResult), string.Format("timestamp1 = {0}, timestamp2 = {1}", timestamp1, timestamp2));
+                    Assert.That(timeGuid1.CompareTo(timeGuid2), Is.EqualTo(expectedResult), $"timestamp1 = {timestamp1}, timestamp2 = {timestamp2}");
                 }
             }
         }
@@ -315,7 +308,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
                     var timeGuid1 = new TimeGuid(timestamp, clockSequence1, node);
                     var timeGuid2 = new TimeGuid(timestamp, clockSequence2, node);
                     var expectedResult = clockSequence1.CompareTo(clockSequence2);
-                    Assert.That(timeGuid1.CompareTo(timeGuid2), Is.EqualTo(expectedResult), string.Format("clockSequence1 = {0}, clockSequence2 = {1}", clockSequence1, clockSequence2));
+                    Assert.That(timeGuid1.CompareTo(timeGuid2), Is.EqualTo(expectedResult), $"clockSequence1 = {clockSequence1}, clockSequence2 = {clockSequence2}");
                 }
             }
         }
@@ -324,7 +317,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         public void CompareTo_ByNode()
         {
             var timestamp = Timestamp.Now;
-            var clockSequence = GetRandomClockSequence();
+            var clockSequence = TimeGuidGenerator.GenerateRandomClockSequence();
             var timeGuid1 = new TimeGuid(timestamp, clockSequence, new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
             var timeGuid2 = new TimeGuid(timestamp, clockSequence, new byte[] {0x01, 0x00, 0x00, 0x00, 0x00, 0x00});
             var timeGuid3 = new TimeGuid(timestamp, clockSequence, new byte[] {0x12, 0x34, 0x56, 0x78, 0xfe, 0xff});
@@ -368,8 +361,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [Test]
         public void TryParse()
         {
-            TimeGuid actual;
-            Assert.That(TimeGuid.TryParse(null, out actual), Is.False);
+            Assert.That(TimeGuid.TryParse(null, out var actual), Is.False);
             Assert.That(actual, Is.Null);
 
             Assert.That(TimeGuid.TryParse("some-string", out actual), Is.False);
@@ -384,22 +376,6 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         }
 
         [Test]
-        public void Serialization_Grobuf()
-        {
-            var timeGuid = TimeGuid.NowGuid();
-            var mergeOnReadSerializer = new Serializer(new AllPropertiesExtractor(), new DefaultGroBufCustomSerializerCollection(), GroBufOptions.MergeOnRead);
-            Func<TestDto, TestDto> serializeAndDeserialize = dto =>
-                {
-                    var bytes = mergeOnReadSerializer.Serialize(dto);
-                    return mergeOnReadSerializer.Deserialize<TestDto>(bytes);
-                };
-            Assert.That(serializeAndDeserialize(new TestDto {TimeGuid = timeGuid}).TimeGuid, Is.EqualTo(timeGuid));
-            Assert.That(serializeAndDeserialize(new TestDto {TimeGuid = TimeGuid.MinValue}).TimeGuid, Is.EqualTo(TimeGuid.MinValue));
-            Assert.That(serializeAndDeserialize(new TestDto {TimeGuid = TimeGuid.MaxValue}).TimeGuid, Is.EqualTo(TimeGuid.MaxValue));
-            Assert.That(serializeAndDeserialize(new TestDto {TimeGuid = null}).TimeGuid, Is.Null);
-        }
-
-        [Test]
         public void Before()
         {
             var timestamp = Timestamp.Now;
@@ -407,23 +383,16 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             Assert.That(TimeGuid.MinForTimestamp(timestamp).Before(), Is.EqualTo(TimeGuid.MaxForTimestamp(timestamp - TimeSpan.FromTicks(1))));
             Assert.That(new TimeGuid(timestamp, 1, TimeGuidBitsLayout.MinNode).Before(), Is.EqualTo(new TimeGuid(timestamp, 0, TimeGuidBitsLayout.MaxNode)));
             Assert.That(new TimeGuid(timestamp, 1, TimeGuidBitsLayout.MaxNode).Before(), Is.EqualTo(new TimeGuid(timestamp, 1, TimeGuidBitsLayout.DecrementNode(TimeGuidBitsLayout.MaxNode))));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuid.MinForTimestamp(new Timestamp(DateTime.MinValue)));
+            Assert.Throws<InvalidOperationException>(() => TimeGuid.MinForTimestamp(new Timestamp(DateTime.MinValue)));
         }
 
-        private ushort GetRandomClockSequence()
-        {
-            return rng.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
-        }
+        private static readonly Guid minGuid = Guid.Empty;
+        private static readonly Guid maxGuid = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
         private TimeGuid g1;
         private TimeGuid g2;
         private TimeGuid g11;
         private TimeGuid g1PlusDelta;
         private readonly Random rng = new Random();
-
-        private class TestDto
-        {
-            public TimeGuid TimeGuid { get; set; }
-        }
     }
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
 	"Miscellaneous Utility Library" Software Licence
 	Version 1.0
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
@@ -6,9 +6,9 @@
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects.Bits;
+using SkbKontur.Cassandra.TimeBasedUuid.Bits;
 
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.BitsTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class LittleEndianBitConverterTest

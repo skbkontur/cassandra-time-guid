@@ -29,14 +29,14 @@ namespace SkbKontur.Cassandra.TimeBasedUuid
         }
 
         [NotNull]
-        private static byte[] GenerateRandomNode()
+        public static byte[] GenerateRandomNode()
         {
             var buffer = new byte[TimeGuidBitsLayout.NodeSize];
             ThreadLocalRandom.Instance.NextBytes(buffer);
             return buffer;
         }
 
-        private static ushort GenerateRandomClockSequence()
+        public static ushort GenerateRandomClockSequence()
         {
             return (ushort)ThreadLocalRandom.Instance.Next(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
         }

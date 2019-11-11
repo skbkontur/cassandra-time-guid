@@ -1,14 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
 using NUnit.Framework;
 
-using SKBKontur.Catalogue.Objects;
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
-
-namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
+namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 {
     [TestFixture]
     public class TimeGuidBitsLayoutTest
@@ -34,24 +31,24 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [Test]
         public void Format_InvalidArgs()
         {
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.Format(new Timestamp(TimeGuidBitsLayout.GregorianCalendarStart.Ticks - 1), 0, new byte[6]));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.Format(new Timestamp(TimeGuidBitsLayout.GregorianCalendarEnd.Ticks + 1), 0, new byte[6]));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence + 1, new byte[6]));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence, new byte[4]));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence, new byte[5]));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.Format(new Timestamp(TimeGuidBitsLayout.GregorianCalendarStart.Ticks - 1), 0, new byte[6]));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.Format(new Timestamp(TimeGuidBitsLayout.GregorianCalendarEnd.Ticks + 1), 0, new byte[6]));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence + 1, new byte[6]));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence, new byte[4]));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.Format(Timestamp.Now, TimeGuidBitsLayout.MaxClockSequence, new byte[5]));
         }
 
         [Test]
         public void GetVersion()
         {
-            Assert.That(TimeGuidBitsLayout.GetVersion(TimeGuidBitsLayout.Format(new Timestamp(tsGenerator.NowTicks()), RandomClockSequence(), rng.NextBytes(6))), Is.EqualTo(GuidVersion.TimeBased));
+            Assert.That(TimeGuidBitsLayout.GetVersion(TimeGuidBitsLayout.Format(new Timestamp(tsGenerator.NowTicks()), RandomClockSequence(), RandomNode())), Is.EqualTo(GuidVersion.TimeBased));
         }
 
         [Test]
         [Category("Functional")]
         public void GetVersion_AllDistinctTimestamps()
         {
-            var node = rng.NextBytes(6);
+            var node = RandomNode();
             var clockSequence = RandomClockSequence();
             foreach (var timestamp in AllDistinctTimestamps(TimeSpan.FromHours(10)))
             {
@@ -64,7 +61,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         public void GetTimestamp()
         {
             var timestamp = new Timestamp(tsGenerator.NowTicks());
-            var timeGuid = TimeGuidBitsLayout.Format(timestamp, RandomClockSequence(), rng.NextBytes(6));
+            var timeGuid = TimeGuidBitsLayout.Format(timestamp, RandomClockSequence(), RandomNode());
             Assert.That(TimeGuidBitsLayout.GetTimestamp(timeGuid), Is.EqualTo(timestamp));
         }
 
@@ -90,7 +87,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [Category("Functional")]
         public void GetTimestamp_AllDistinctTimestamps()
         {
-            var node = rng.NextBytes(6);
+            var node = RandomNode();
             var clockSequence = RandomClockSequence();
             foreach (var timestamp in AllDistinctTimestamps(TimeSpan.FromHours(10)))
             {
@@ -118,7 +115,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         [Test]
         public void GetNode()
         {
-            var node = rng.NextBytes(6);
+            var node = RandomNode();
             var timeGuid = TimeGuidBitsLayout.Format(new Timestamp(tsGenerator.NowTicks()), RandomClockSequence(), node);
             Assert.That(TimeGuidBitsLayout.GetNode(timeGuid), Is.EqualTo(node));
         }
@@ -137,7 +134,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             Assert.That(TimeGuidBitsLayout.IncrementNode(new byte[] {0xff, 0xfe, 0xff, 0xff, 0xff, 0xff}), Is.EqualTo(new byte[] {0xff, 0xff, 0x00, 0x00, 0x00, 0x00}));
             Assert.That(TimeGuidBitsLayout.IncrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xfe, 0xff}), Is.EqualTo(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0x00}));
             Assert.That(TimeGuidBitsLayout.IncrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xfe}), Is.EqualTo(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.IncrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.IncrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}));
         }
 
         [Test]
@@ -154,7 +151,7 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
             Assert.That(TimeGuidBitsLayout.DecrementNode(new byte[] {0xff, 0xff, 0x00, 0x00, 0x00, 0x00}), Is.EqualTo(new byte[] {0xff, 0xfe, 0xff, 0xff, 0xff, 0xff}));
             Assert.That(TimeGuidBitsLayout.DecrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0x00}), Is.EqualTo(new byte[] {0xff, 0xff, 0xff, 0xff, 0xfe, 0xff}));
             Assert.That(TimeGuidBitsLayout.DecrementNode(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}), Is.EqualTo(new byte[] {0xff, 0xff, 0xff, 0xff, 0xff, 0xfe}));
-            Assert.Throws<InvalidProgramStateException>(() => TimeGuidBitsLayout.DecrementNode(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}));
+            Assert.Throws<InvalidOperationException>(() => TimeGuidBitsLayout.DecrementNode(new byte[] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}));
         }
 
         [Test]
@@ -163,13 +160,13 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
         {
             var timestamp = new Timestamp(tsGenerator.NowTicks());
             var clockSequence = RandomClockSequence();
-            var node = rng.NextBytes(6);
+            var node = RandomNode();
             var sw = Stopwatch.StartNew();
             const int count = 10 * 1000 * 1000;
             for (var i = 0; i < count; i++)
                 TimeGuidBitsLayout.Format(timestamp, clockSequence, node);
             sw.Stop();
-            Console.Out.WriteLine("TimeGuidBitsLayout.Format took {0} ms for {1} calls", sw.ElapsedMilliseconds, count);
+            Console.Out.WriteLine($"TimeGuidBitsLayout.Format took {sw.ElapsedMilliseconds} ms for {count} calls");
         }
 
         [Test]
@@ -192,25 +189,31 @@ namespace SKBKontur.Catalogue.Core.Tests.Commons.ObjectsTests.TimeGuidTests
                 var bitsB = Convert.ToString(b, 2);
                 var bitsNb = Convert.ToString(nb, 2);
                 var bitsSb = Convert.ToString(sb, 2);
-                Console.Out.WriteLine("{0}: {1:x2}={2}, x^0x80: {3:x2}={4}, sb: {5}={6}", b.ToString("D3"), b, formatBitsString(bitsB), nb, formatBitsString(bitsNb), sb.ToString("D3"), formatBitsString(bitsSb));
+                Console.Out.WriteLine($"{b:D3}: {b:x2}={formatBitsString(bitsB)}, x^0x80: {nb:x2}={formatBitsString(bitsNb)}, sb: {sb:D3}={formatBitsString(bitsSb)}");
             }
         }
 
-        private ushort RandomClockSequence()
+        private static byte[] RandomNode()
         {
-            return rng.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
+            return TimeGuidGenerator.GenerateRandomNode();
+        }
+
+        private static ushort RandomClockSequence()
+        {
+            return TimeGuidGenerator.GenerateRandomClockSequence();
         }
 
         public static IEnumerable<Timestamp> AllDistinctTimestamps(TimeSpan timestampStep)
         {
-            var rng = new Random(Guid.NewGuid().GetHashCode());
             yield return TimeGuidBitsLayout.GregorianCalendarStart;
             for (var baseTimestamp = TimeGuidBitsLayout.GregorianCalendarStart; baseTimestamp < TimeGuidBitsLayout.GregorianCalendarEnd - timestampStep; baseTimestamp += timestampStep)
-                yield return baseTimestamp += rng.NextTimeSpan(timestampStep);
+            {
+                var randomDelta = TimeSpan.FromTicks((long)(ThreadLocalRandom.Instance.NextDouble() * timestampStep.Ticks));
+                yield return baseTimestamp += randomDelta;
+            }
             yield return TimeGuidBitsLayout.GregorianCalendarEnd;
         }
 
-        private readonly Random rng = new Random(Guid.NewGuid().GetHashCode());
         private readonly PreciseTimestampGenerator tsGenerator = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
     }
 }
