@@ -58,9 +58,9 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         {
             var nowDateTime = DateTime.UtcNow;
             var nowTs = Timestamp.Now;
-            Assert.That(nowTs.Ticks - nowDateTime.Ticks, Is.LessThan(100 * 10000));
-            Assert.That((nowTs.ToDateTime() - nowDateTime).TotalMilliseconds, Is.LessThan(100));
-            Assert.That((nowTs.ToDateTimeOffset() - new DateTimeOffset(nowDateTime)).TotalMilliseconds, Is.LessThan(100));
+            Assert.That(TimeSpan.FromTicks(nowTs.Ticks - nowDateTime.Ticks), Is.LessThan(TimeSpan.FromTicks(100 * 10_000)));
+            Assert.That(TimeSpan.FromMilliseconds((nowTs.ToDateTime() - nowDateTime).TotalMilliseconds), Is.LessThan(TimeSpan.FromMilliseconds(100)));
+            Assert.That(TimeSpan.FromMilliseconds((nowTs.ToDateTimeOffset() - new DateTimeOffset(nowDateTime)).TotalMilliseconds), Is.LessThan(TimeSpan.FromMilliseconds(100)));
         }
 
         [Test]
