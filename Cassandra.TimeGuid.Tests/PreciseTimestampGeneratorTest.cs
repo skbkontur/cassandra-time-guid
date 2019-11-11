@@ -20,18 +20,18 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [TestCase(64)]
         [TestCase(128)]
         [Category("LongRunning")]
-        public void Perf(int threadsCount)
+        public void PreciseTimestampGenerator_Perf(int threadsCount)
         {
             const int totalIterationsCount = 64 * 1000 * 1000;
-            var sut = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+            var sut = CreateNewTimestampGenerator();
             PerfMeasurement.Do("PreciseTimestampGenerator.Now()", threadsCount, totalIterationsCount, () => sut.NowTicks());
         }
 
         [Test]
-        public void Collisions()
+        public void PreciseTimestampGenerator_Collisions()
         {
             const int count = 32 * 1000 * 1000;
-            var timestampGenerator = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+            var timestampGenerator = CreateNewTimestampGenerator();
             var results = new HashSet<long>();
             for (var i = 0; i < count; i++)
                 results.Add(timestampGenerator.NowTicks());
@@ -48,7 +48,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [TestCaseSource(nameof(sleepDurations))]
-        public void EnsureWallTimeLikehood(TimeSpan sleepDuration, int iterations)
+        public void EnsureWallTimeLikelihood(TimeSpan sleepDuration, int iterations)
         {
             var actualDurations = new TimeSpan[iterations];
             for (var i = 0; i < iterations; i++)
@@ -62,7 +62,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [TestCaseSource(nameof(sleepDurations))]
-        public void EnsureStopwatchAndWallTimeLikehood(TimeSpan sleepDuration, int iterations)
+        public void EnsureStopwatchAndWallTimeLikelihood(TimeSpan sleepDuration, int iterations)
         {
             Assert.That(Stopwatch.IsHighResolution);
             var sw = Stopwatch.StartNew();
@@ -109,6 +109,11 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             Array.Sort(actualDurations);
             Assert.That(actualDurations[0 + errorTolerance], Is.GreaterThan(expectedDuration.Subtract(epsilon)));
             Assert.That(actualDurations[actualDurations.Length - 1 - errorTolerance], Is.LessThan(expectedDuration.Add(epsilon)));
+        }
+
+        private static PreciseTimestampGenerator CreateNewTimestampGenerator()
+        {
+            return new PreciseTimestampGenerator(syncPeriod : TimeSpan.FromSeconds(1), maxAllowedDivergence : TimeSpan.FromMilliseconds(100));
         }
 
         private static readonly object[] sleepDurations =

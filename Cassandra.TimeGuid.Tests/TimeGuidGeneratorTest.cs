@@ -23,24 +23,24 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [TestCase(64)]
         [TestCase(128)]
         [Category("LongRunning")]
-        public void Perf(int threadsCount)
+        public void TimeGuidGenerator_Perf(int threadsCount)
         {
             const int totalIterationsCount = 64 * 1000 * 1000;
-            var sut = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
+            var sut = new TimeGuidGenerator(CreateNewTimestampGenerator());
             PerfMeasurement.Do("TimeGuidGenerator.NewGuid()", threadsCount, totalIterationsCount, () => sut.NewGuid());
         }
 
         [Test]
-        public void Collisions()
+        public void TimeGuidGenerator_Collisions()
         {
-            var guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
+            var guidGen = new TimeGuidGenerator(CreateNewTimestampGenerator());
             var results = new Dictionary<byte[], byte>(10 * 1000 * 1000, ByteArrayComparer.Instance);
             for (var i = 0; i < 10 * 1000 * 1000; i++)
                 results.Add(guidGen.NewGuid(), 0);
         }
 
         [Test]
-        public void Collisions_MultiProc()
+        public void TimeGuidGenerator_Collisions_MultiProc()
         {
             const int count = 100 * 1000;
             const int threadsCount = 50;
@@ -54,7 +54,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
                 var thread = new Thread(() =>
                     {
                         startSignal.WaitOne();
-                        var guidGen = new TimeGuidGenerator(new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100)));
+                        var guidGen = new TimeGuidGenerator(CreateNewTimestampGenerator());
                         for (var i1 = 0; i1 < count; i1++)
                             list.Add(guidGen.NewGuid());
                     });
@@ -130,6 +130,11 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             var bytes = new byte[6];
             cryptoRng.GetBytes(bytes);
             return bytes;
+        }
+
+        private static PreciseTimestampGenerator CreateNewTimestampGenerator()
+        {
+            return new PreciseTimestampGenerator(syncPeriod : TimeSpan.FromSeconds(1), maxAllowedDivergence : TimeSpan.FromMilliseconds(100));
         }
 
         private readonly RNGCryptoServiceProvider cryptoRng = new RNGCryptoServiceProvider();

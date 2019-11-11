@@ -154,7 +154,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 
         [Test]
         [Category("LongRunning")]
-        public void Perf()
+        public void TimeGuidBitsLayout_Perf()
         {
             var timestamp = new Timestamp(tsGenerator.NowTicks());
             var clockSequence = RandomClockSequence();
@@ -212,6 +212,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             yield return TimeGuidBitsLayout.GregorianCalendarEnd;
         }
 
-        private readonly PreciseTimestampGenerator tsGenerator = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+        private readonly PreciseTimestampGenerator tsGenerator = new PreciseTimestampGenerator(syncPeriod : TimeSpan.FromSeconds(1), maxAllowedDivergence : TimeSpan.FromMilliseconds(100));
     }
 }
