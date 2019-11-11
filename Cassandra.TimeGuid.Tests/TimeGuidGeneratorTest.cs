@@ -42,7 +42,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [Test]
         public void Collisions_MultiProc()
         {
-            const int count = 1000 * 1000;
+            const int count = 100 * 1000;
             const int threadsCount = 50;
             var lists = new List<List<byte[]>>();
             var threads = new List<Thread>();
