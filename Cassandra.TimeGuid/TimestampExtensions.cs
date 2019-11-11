@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Objects
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public static class TimestampExtensions
     {

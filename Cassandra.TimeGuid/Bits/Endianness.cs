@@ -4,7 +4,7 @@
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
 */
 
-namespace SKBKontur.Catalogue.Objects.Bits
+namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
     /// <summary>
     ///     Endianness of a converter

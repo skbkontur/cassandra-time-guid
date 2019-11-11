@@ -4,9 +4,9 @@ using System.Linq;
 
 using JetBrains.Annotations;
 
-using SKBKontur.Catalogue.Objects.Bits;
+using SkbKontur.Cassandra.TimeGuid.Bits;
 
-namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
+namespace SkbKontur.Cassandra.TimeGuid.TimeBasedUuid
 {
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SKBKontur.Catalogue.Objects
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public static class GuidHelpers
     {

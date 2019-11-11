@@ -2,9 +2,9 @@
 
 using JetBrains.Annotations;
 
-using SKBKontur.Catalogue.Objects.Bits;
+using SkbKontur.Cassandra.TimeGuid.Bits;
 
-namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
+namespace SkbKontur.Cassandra.TimeGuid.TimeBasedUuid
 {
     // Version 1 UUID layout (https://www.ietf.org/rfc/rfc4122.txt):
     //

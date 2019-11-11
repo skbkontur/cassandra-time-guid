@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Objects
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public static class RandomExtensions
     {

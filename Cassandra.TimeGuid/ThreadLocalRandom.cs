@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading;
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Objects
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public static class ThreadLocalRandom
     {

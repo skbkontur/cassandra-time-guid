@@ -2,7 +2,7 @@
 
 using JetBrains.Annotations;
 
-namespace SKBKontur.Catalogue.Objects.Bits
+namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
     public static class BitHelper
     {

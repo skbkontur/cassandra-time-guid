@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-using SKBKontur.Catalogue.Objects.TimeBasedUuid;
+using SkbKontur.Cassandra.TimeGuid.TimeBasedUuid;
 
-namespace SKBKontur.Catalogue.Objects
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public sealed class Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
     {

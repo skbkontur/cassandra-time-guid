@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace SKBKontur.Catalogue.Objects.Bits
+namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
     public class ByteArrayComparer : IEqualityComparer<byte[]>, IComparer<byte[]>
     {
