@@ -1,4 +1,4 @@
-﻿/*
+/*
 	"Miscellaneous Utility Library" Software Licence
 	Version 1.0
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
@@ -7,11 +7,14 @@
 using System;
 using System.Runtime.InteropServices;
 
+using JetBrains.Annotations;
+
 namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
     /// <summary>
     ///     Equivalent of System.BitConverter, but with either endianness.
     /// </summary>
+    [PublicAPI]
     public abstract class EndianBitConverter
     {
         #region Private struct used for Single/Int32 conversions

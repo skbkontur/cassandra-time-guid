@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace SkbKontur.Cassandra.TimeGuid
 {
+    [PublicAPI]
     public enum GuidVersion
     {
         TimeBased = 1,

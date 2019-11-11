@@ -8,6 +8,7 @@ using SkbKontur.Cassandra.TimeGuid.Bits;
 
 namespace SkbKontur.Cassandra.TimeGuid
 {
+    [PublicAPI]
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
@@ -209,7 +210,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         [NotNull]
         private static byte[] ReorderGuidBytesInCassandraWay([NotNull] byte[] b)
         {
-            if (b.Length != BitHelper.TimeGuidSize)
+            if (b.Length != TimeGuidBitsLayout.TimeGuidSize)
                 throw new InvalidOperationException("b must be 16 bytes long");
             return new[] {b[3], b[2], b[1], b[0], b[5], b[4], b[7], b[6], b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]};
         }
@@ -227,7 +228,7 @@ namespace SkbKontur.Cassandra.TimeGuid
 
         // ReSharper disable once InconsistentNaming
         // (sic!) bytes is not a field for grobuf compatibility
-        private byte[] bytes { get; set; }
+        private byte[] bytes { get; }
 
         [NotNull]
         public static readonly TimeGuid MinValue = new TimeGuid(TimeGuidBitsLayout.MinTimeGuid);
@@ -235,6 +236,6 @@ namespace SkbKontur.Cassandra.TimeGuid
         [NotNull]
         public static readonly TimeGuid MaxValue = new TimeGuid(TimeGuidBitsLayout.MaxTimeGuid);
 
-        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(Timestamp.PreciseTimestampGeneratorInstance);
+        private static readonly TimeGuidGenerator guidGen = new TimeGuidGenerator(PreciseTimestampGenerator.Instance);
     }
 }

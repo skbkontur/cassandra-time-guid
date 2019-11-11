@@ -1,14 +1,17 @@
-﻿/*
+/*
 	"Miscellaneous Utility Library" Software Licence
 	Version 1.0
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
 */
+
+using JetBrains.Annotations;
 
 namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
     /// <summary>
     ///     Endianness of a converter
     /// </summary>
+    [PublicAPI]
     public enum Endianness
     {
         /// <summary>

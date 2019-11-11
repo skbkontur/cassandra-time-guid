@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 
@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 
 namespace SkbKontur.Cassandra.TimeGuid
 {
+    [PublicAPI]
     public class PreciseTimestampGenerator
     {
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
@@ -70,7 +71,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         private static readonly double stopwatchTickFrequency = (double)TicksPerMicrosecond * 1000 * 1000 / Stopwatch.Frequency;
 
         [NotNull]
-        public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+        public static readonly PreciseTimestampGenerator Instance = new PreciseTimestampGenerator(syncPeriod : TimeSpan.FromSeconds(1), maxAllowedDivergence : TimeSpan.FromMilliseconds(100));
 
         private readonly long syncPeriodTicks;
         private readonly long maxAllowedDivergenceTicks;

@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 namespace SkbKontur.Cassandra.TimeGuid
 {
+    [PublicAPI]
     public sealed class Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
     {
         public Timestamp(DateTime timestamp)
@@ -31,7 +32,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         }
 
         [NotNull]
-        public static Timestamp Now => new Timestamp(PreciseTimestampGeneratorInstance.NowTicks());
+        public static Timestamp Now => new Timestamp(PreciseTimestampGenerator.Instance.NowTicks());
 
         public long Ticks { get; }
 
@@ -187,8 +188,15 @@ namespace SkbKontur.Cassandra.TimeGuid
             return this + TimeSpan.FromTicks(value);
         }
 
+        [NotNull]
+        public Timestamp Floor(TimeSpan precision)
+        {
+            if (precision.Ticks <= 0)
+                throw new InvalidOperationException($"Invalid precision: {precision}");
+            return new Timestamp(Ticks / precision.Ticks * precision.Ticks);
+        }
+
         public static readonly Timestamp MinValue = new Timestamp(DateTime.MinValue.Ticks);
         public static readonly Timestamp MaxValue = new Timestamp(DateTime.MaxValue.Ticks);
-        public static readonly PreciseTimestampGenerator PreciseTimestampGeneratorInstance = PreciseTimestampGenerator.Instance;
     }
 }

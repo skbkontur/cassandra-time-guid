@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
+using JetBrains.Annotations;
+
 namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
+    [PublicAPI]
     public class ByteArrayComparer : IEqualityComparer<byte[]>, IComparer<byte[]>
     {
         public bool Equals(byte[] x, byte[] y)
@@ -78,7 +81,7 @@ namespace SkbKontur.Cassandra.TimeGuid.Bits
                 {
                     var lhs = px;
                     var rhs = py;
-                    const int sizeOfUInt = BitHelper.UintSize;
+                    const int sizeOfUInt = sizeof(uint);
 
                     if (n > sizeOfUInt)
                     {

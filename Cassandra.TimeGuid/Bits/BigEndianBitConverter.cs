@@ -1,8 +1,10 @@
-﻿/*
+/*
 	"Miscellaneous Utility Library" Software Licence
 	Version 1.0
 	Copyright (c) 2004-2008 Jon Skeet and Marc Gravell. All rights reserved.
 */
+
+using JetBrains.Annotations;
 
 namespace SkbKontur.Cassandra.TimeGuid.Bits
 {
@@ -10,6 +12,7 @@ namespace SkbKontur.Cassandra.TimeGuid.Bits
     ///     Implementation of EndianBitConverter which converts to/from big-endian
     ///     byte arrays.
     /// </summary>
+    [PublicAPI]
     public sealed class BigEndianBitConverter : EndianBitConverter
     {
         /// <summary>

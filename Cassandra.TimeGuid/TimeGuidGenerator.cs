@@ -2,7 +2,7 @@ using JetBrains.Annotations;
 
 namespace SkbKontur.Cassandra.TimeGuid
 {
-    public class TimeGuidGenerator
+    internal class TimeGuidGenerator
     {
         public TimeGuidGenerator([NotNull] PreciseTimestampGenerator preciseTimestampGenerator)
         {
@@ -31,12 +31,14 @@ namespace SkbKontur.Cassandra.TimeGuid
         [NotNull]
         private static byte[] GenerateRandomNode()
         {
-            return ThreadLocalRandom.Instance.NextBytes(TimeGuidBitsLayout.NodeSize);
+            var buffer = new byte[TimeGuidBitsLayout.NodeSize];
+            ThreadLocalRandom.Instance.NextBytes(buffer);
+            return buffer;
         }
 
         private static ushort GenerateRandomClockSequence()
         {
-            return ThreadLocalRandom.Instance.NextUshort(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
+            return (ushort)ThreadLocalRandom.Instance.Next(TimeGuidBitsLayout.MinClockSequence, TimeGuidBitsLayout.MaxClockSequence + 1);
         }
 
         private readonly PreciseTimestampGenerator preciseTimestampGenerator;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using JetBrains.Annotations;
 
@@ -34,6 +34,7 @@ namespace SkbKontur.Cassandra.TimeGuid
     // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     //
     // Implementation is based on https://github.com/fluentcassandra/fluentcassandra/blob/master/src/GuidGenerator.cs
+    [PublicAPI]
     public static class TimeGuidBitsLayout
     {
         [NotNull]
@@ -50,9 +51,9 @@ namespace SkbKontur.Cassandra.TimeGuid
 
             var timestampTicks = (timestamp - GregorianCalendarStart).Ticks;
             var timestampBytes = EndianBitConverter.Little.GetBytes(timestampTicks);
-            var clockSequencebytes = EndianBitConverter.Big.GetBytes(clockSequence);
+            var clockSequenceBytes = EndianBitConverter.Big.GetBytes(clockSequence);
 
-            var bytes = new byte[BitHelper.TimeGuidSize];
+            var bytes = new byte[TimeGuidSize];
             bytes[0] = timestampBytes[3];
             bytes[1] = timestampBytes[2];
             bytes[2] = timestampBytes[1];
@@ -64,8 +65,8 @@ namespace SkbKontur.Cassandra.TimeGuid
 
             // xor octets 8-15 with 10000000 for cassandra compatibility as it compares these octets as signed bytes
             var offset = 8;
-            for (var i = 0; i < BitHelper.UshortSize; i++)
-                bytes[offset++] = (byte)(clockSequencebytes[i] ^ signBitMask);
+            for (var i = 0; i < sizeof(ushort); i++)
+                bytes[offset++] = (byte)(clockSequenceBytes[i] ^ signBitMask);
             for (var i = 0; i < NodeSize; i++)
                 bytes[offset++] = (byte)(node[i] ^ signBitMask);
 
@@ -82,18 +83,18 @@ namespace SkbKontur.Cassandra.TimeGuid
 
         public static GuidVersion GetVersion([NotNull] byte[] bytes)
         {
-            if (bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
+            if (bytes.Length != TimeGuidSize)
+                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
             return (GuidVersion)(bytes[versionOffset] >> versionByteShift);
         }
 
         [NotNull]
         public static Timestamp GetTimestamp([NotNull] byte[] bytes)
         {
-            if (bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
+            if (bytes.Length != TimeGuidSize)
+                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
 
-            var timestampBytes = new byte[BitHelper.TimestampSize];
+            var timestampBytes = new byte[sizeof(long)];
             timestampBytes[0] = bytes[3];
             timestampBytes[1] = bytes[2];
             timestampBytes[2] = bytes[1];
@@ -112,8 +113,8 @@ namespace SkbKontur.Cassandra.TimeGuid
 
         public static ushort GetClockSequence([NotNull] byte[] bytes)
         {
-            if (bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
+            if (bytes.Length != TimeGuidSize)
+                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
             var clockSequenceHighByte = (byte)(bytes[clockSequenceHighByteOffset] ^ signBitMask);
             var clockSequenceLowByte = (byte)(bytes[clockSequenceLowByteOffset] ^ signBitMask);
             return EndianBitConverter.Big.ToUInt16(new[] {clockSequenceHighByte, clockSequenceLowByte}, 0);
@@ -122,8 +123,8 @@ namespace SkbKontur.Cassandra.TimeGuid
         [NotNull]
         public static byte[] GetNode([NotNull] byte[] bytes)
         {
-            if (bytes.Length != BitHelper.TimeGuidSize)
-                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", BitHelper.TimeGuidSize));
+            if (bytes.Length != TimeGuidSize)
+                throw new InvalidOperationException(string.Format("bytes must be {0} bytes long", TimeGuidSize));
             var node = new byte[NodeSize];
             for (var i = 0; i < NodeSize; i++)
                 node[i] = (byte)(bytes[nodeOffset + i] ^ signBitMask);
@@ -195,6 +196,7 @@ namespace SkbKontur.Cassandra.TimeGuid
         private const int clockSequenceHighByteOffset = 8;
         private const int clockSequenceLowByteOffset = 9;
 
+        public const int TimeGuidSize = 16;
         public const int NodeSize = 6;
         private const int nodeOffset = 10;
 
