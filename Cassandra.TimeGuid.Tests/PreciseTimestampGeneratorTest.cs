@@ -104,10 +104,8 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
 
         private static void AssertThatDurationIsEqualTo(TimeSpan[] actualDurations, TimeSpan expectedDuration)
         {
-            //var epsilon = TeamCityEnvironment.IsExecutionViaTeamCity ? TimeSpan.FromMilliseconds(20) : TimeSpan.FromMilliseconds(1);
-            //var errorTolerance = TeamCityEnvironment.IsExecutionViaTeamCity ? actualDurations.Length / 5 : 0; // на тимсити допускаем 20% ошибок
             var epsilon = TimeSpan.FromMilliseconds(10);
-            var errorTolerance = 0;
+            const int errorTolerance = 0;
             Array.Sort(actualDurations);
             Assert.That(actualDurations[0 + errorTolerance], Is.GreaterThan(expectedDuration.Subtract(epsilon)));
             Assert.That(actualDurations[actualDurations.Length - 1 - errorTolerance], Is.LessThan(expectedDuration.Add(epsilon)));
