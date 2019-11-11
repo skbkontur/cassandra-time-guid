@@ -11,7 +11,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public PreciseTimestampGenerator(TimeSpan syncPeriod, TimeSpan maxAllowedDivergence)
         {
             if (!Stopwatch.IsHighResolution)
-                throw new InvalidProgramStateException("Stopwatch is not based on a high-resolution timer");
+                throw new InvalidOperationException("Stopwatch is not based on a high-resolution timer");
             syncPeriodTicks = syncPeriod.Ticks;
             maxAllowedDivergenceTicks = maxAllowedDivergence.Ticks;
             baseTimestampTicks = DateTime.UtcNow.Ticks;

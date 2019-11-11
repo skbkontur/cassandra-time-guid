@@ -1,17 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using JetBrains.Annotations;
 
-using Newtonsoft.Json;
-
 using SKBKontur.Catalogue.Objects.Bits;
-using SKBKontur.Catalogue.Objects.Json;
 
 namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
 {
-    [JsonConverter(typeof(TimeGuidConverter))]
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {
         public TimeGuid([NotNull] Timestamp timestamp, ushort clockSequence, [NotNull] byte[] node)
@@ -22,7 +18,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         public TimeGuid([NotNull] byte[] bytes)
         {
             if (TimeGuidBitsLayout.GetVersion(bytes) != GuidVersion.TimeBased)
-                throw new InvalidProgramStateException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
+                throw new InvalidOperationException(string.Format("Invalid v1 guid: [{0}]", string.Join(", ", bytes.Select(x => x.ToString("x2")))));
             this.bytes = bytes;
         }
 
@@ -30,7 +26,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
             var timeGuidBytes = ReorderGuidBytesInCassandraWay(guid.ToByteArray());
             if (TimeGuidBitsLayout.GetVersion(timeGuidBytes) != GuidVersion.TimeBased)
-                throw new InvalidProgramStateException(string.Format("Invalid v1 guid: {0}", guid));
+                throw new InvalidOperationException(string.Format("Invalid v1 guid: {0}", guid));
             bytes = timeGuidBytes;
         }
 
@@ -45,7 +41,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         {
             TimeGuid timeGuid;
             if (!TryParse(str, out timeGuid))
-                throw new InvalidProgramStateException(string.Format("Cannot parse TimeGuid from: {0}", str));
+                throw new InvalidOperationException(string.Format("Cannot parse TimeGuid from: {0}", str));
             return timeGuid;
         }
 
@@ -135,7 +131,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
             var node = GetNode();
             var otherNode = other.GetNode();
             if (node.Length != otherNode.Length)
-                throw new InvalidProgramStateException(string.Format("Node lengths are different for: {0} and {1}", this, other));
+                throw new InvalidOperationException(string.Format("Node lengths are different for: {0} and {1}", this, other));
             for (var i = 0; i < node.Length; i++)
             {
                 result = node[i].CompareTo(otherNode[i]);
@@ -214,7 +210,7 @@ namespace SKBKontur.Catalogue.Objects.TimeBasedUuid
         private static byte[] ReorderGuidBytesInCassandraWay([NotNull] byte[] b)
         {
             if (b.Length != BitHelper.TimeGuidSize)
-                throw new InvalidProgramStateException("b must be 16 bytes long");
+                throw new InvalidOperationException("b must be 16 bytes long");
             return new[] {b[3], b[2], b[1], b[0], b[5], b[4], b[7], b[6], b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]};
         }
 

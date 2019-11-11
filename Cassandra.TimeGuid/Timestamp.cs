@@ -1,16 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-using Newtonsoft.Json;
-
-using SKBKontur.Catalogue.Objects.Json;
 using SKBKontur.Catalogue.Objects.TimeBasedUuid;
 
 namespace SKBKontur.Catalogue.Objects
 {
-    [JsonConverter(typeof(StringTimestampConverter))]
     public sealed class Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
     {
         public Timestamp(DateTime timestamp)
