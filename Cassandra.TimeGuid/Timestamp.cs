@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
-using SkbKontur.Cassandra.TimeGuid.TimeBasedUuid;
-
 namespace SkbKontur.Cassandra.TimeGuid
 {
     public sealed class Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>

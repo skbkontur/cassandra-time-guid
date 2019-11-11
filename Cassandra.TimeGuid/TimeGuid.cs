@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 
 using SkbKontur.Cassandra.TimeGuid.Bits;
 
-namespace SkbKontur.Cassandra.TimeGuid.TimeBasedUuid
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public sealed class TimeGuid : IEquatable<TimeGuid>, IComparable<TimeGuid>, IComparable
     {

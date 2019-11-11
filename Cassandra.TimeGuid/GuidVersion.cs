@@ -1,4 +1,4 @@
-﻿namespace SkbKontur.Cassandra.TimeGuid.TimeBasedUuid
+namespace SkbKontur.Cassandra.TimeGuid
 {
     public enum GuidVersion
     {
