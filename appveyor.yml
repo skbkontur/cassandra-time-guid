@@ -34,7 +34,7 @@ build_script:
   - cmd: dotnet pack --no-build --configuration Release ./Cassandra.TimeGuid.sln
 
 test_script:
-  - cmd: dotnet test --no-build --configuration Release --filter TestCategory!=LongRunning ./Cassandra.TimeGuid.Tests/Cassandra.TimeGuid.Tests.csproj
+  - cmd: dotnet test --verbosity normal --no-build --configuration Release --filter TestCategory!=LongRunning ./Cassandra.TimeGuid.Tests/Cassandra.TimeGuid.Tests.csproj
 
 artifacts:
   - path: './Cassandra.TimeGuid/bin/Release/*.nupkg'
