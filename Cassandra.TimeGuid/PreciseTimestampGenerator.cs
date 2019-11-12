@@ -61,9 +61,9 @@ namespace SkbKontur.Cassandra.TimeBasedUuid
 
         public static long GetDateTimeTicks(long stopwatchTicks)
         {
-            double dticks = stopwatchTicks;
-            dticks *= stopwatchTickFrequency;
-            return unchecked((long)dticks);
+            double dateTimeTicks = stopwatchTicks;
+            dateTimeTicks *= stopwatchTickFrequency;
+            return unchecked((long)dateTimeTicks);
         }
 
         public const long TicksPerMicrosecond = 10;
