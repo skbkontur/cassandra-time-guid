@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
 using NUnit.Framework;
@@ -62,6 +63,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         }
 
         [Test]
+        [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
         public void GetHashCode_Equal()
         {
             Assert.AreEqual(0, comparer.GetHashCode(null));
@@ -120,16 +122,16 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         [Category("LongRunning")]
         public void Compare_Perf()
         {
-            const int itersCount = 20000;
-            var samples = new byte[itersCount][];
-            for (var i = 0; i < itersCount; i++)
+            const int iterations = 20000;
+            var samples = new byte[iterations][];
+            for (var i = 0; i < iterations; i++)
                 samples[i] = Guid.NewGuid().ToByteArray();
 
             var stopwatch = Stopwatch.StartNew();
             long s = 0;
-            for (var i = 0; i < itersCount; i++)
+            for (var i = 0; i < iterations; i++)
             {
-                for (var j = i + 1; j < itersCount; j++)
+                for (var j = i + 1; j < iterations; j++)
                     s += comparer.Compare(samples[i], samples[j]);
             }
             stopwatch.Stop();
