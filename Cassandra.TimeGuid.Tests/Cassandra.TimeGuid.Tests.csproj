@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TargetFrameworks>net471;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>net48;netcoreapp2.2</TargetFrameworks>
     <RootNamespace>SkbKontur.Cassandra.TimeBasedUuid.Tests</RootNamespace>
   </PropertyGroup>
 
