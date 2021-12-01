@@ -38,6 +38,7 @@ before_build:
   - cmd: DiagTools\coreinfo.exe
   - cmd: dotnet --info
   - cmd: dotnet restore ./Cassandra.TimeGuid.sln --verbosity minimal
+  - cmd: dotnet tool restore
 
 build_script:
   - cmd: dotnet build --configuration Release ./Cassandra.TimeGuid.sln
