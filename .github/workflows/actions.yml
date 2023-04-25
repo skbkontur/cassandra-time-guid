@@ -43,6 +43,12 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          
+      - name: Setup clockres
+        run: DiagTools\clockres.exe -accepteula
+        
+      - name: Setup coreinfo 
+        run: reg.exe ADD "HKCU\Software\Sysinternals\Coreinfo" /v EulaAccepted /t REG_DWORD /d 1 /f && DiagTools\coreinfo.exe
 
       - name: Build
         run: dotnet build --configuration Release ${{ env.SOLUTION_FILE }}
