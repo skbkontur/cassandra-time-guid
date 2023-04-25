@@ -141,14 +141,14 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         private static List<byte[]> GenerateRandomByteArrays()
         {
             var items = new List<byte[]>();
-            var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var randomNumberGenerator = RandomNumberGenerator.Create();
             for (var idx = 0; idx < 1000; idx++)
             {
                 var item = new byte[64];
                 if (idx > 0 && idx % 5 == 0)
                     items[idx - 1].CopyTo(item, 0);
                 else
-                    rngCryptoServiceProvider.GetNonZeroBytes(item);
+                    randomNumberGenerator.GetNonZeroBytes(item);
                 items.Add(item);
             }
             return items;
