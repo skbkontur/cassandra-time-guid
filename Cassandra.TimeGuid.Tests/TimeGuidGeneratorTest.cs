@@ -128,7 +128,7 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
         private byte[] GenerateRandomNodeCrypto()
         {
             var bytes = new byte[6];
-            cryptoRng.GetBytes(bytes);
+            randomNumberGenerator.GetBytes(bytes);
             return bytes;
         }
 
@@ -137,6 +137,6 @@ namespace SkbKontur.Cassandra.TimeBasedUuid.Tests
             return new PreciseTimestampGenerator(syncPeriod : TimeSpan.FromSeconds(1), maxAllowedDivergence : TimeSpan.FromMilliseconds(100));
         }
 
-        private readonly RNGCryptoServiceProvider cryptoRng = new RNGCryptoServiceProvider();
+        private readonly RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
     }
 }
